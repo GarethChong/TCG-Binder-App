@@ -6,4 +6,4 @@ class Card:
         self.image_url = image_url
 
     def fetch_price(self):
-        pass 
+        return 0 

@@ -1,3 +1,5 @@
+from Card import Card
+
 class Page:
     def __init__(self, size): 
         self.slots = [None] * size
