@@ -32,13 +32,22 @@ def home():
 
 @app.route('/binderlist', methods=['POST'])
 def binder_list():
+    #request for a name for a new binder
     data = request.get_json()
     name = data.get('name')
 
+    #create a new binder and add it to the database
     new_binder = Binder(name=name)
     db.session.add(new_binder)
     db.session.commit()
     return jsonify({'message': 'Binder created successfully!'})
+
+@app.route('/binderlist', methods=['GET'])
+def get_binders():
+    #open all binders and return them as a list of dictionaries
+    binders = Binder.query.all()
+    binder_list = [{'id': binder.id, 'name': binder.name} for binder in binders]
+    return jsonify(binder_list)
 
 #application context allows full access to the database and its tables, ensuring that the necessary resources are available when creating the tables.
 with app.app_context():
