@@ -13,12 +13,13 @@ db = SQLAlchemy(app)
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
+#redirects unauthenticated user to login when they try to access a @login_required route
+login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-
 class Binder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -38,26 +39,38 @@ class Card(db.Model):
     image_url = db.Column(db.String(500))
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
 
+#gets the userid and returns a full user object
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+#signals frontend to redirect unauthorized user
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'message': 'Please login to continue'}), 401
+
 @app.route('/')
 def home():
     return "Welcome to the TCG Binder App!"
 
 @app.route('/binderlist', methods=['POST'])
+@login_required
 def binder_list():
     #request for a name for a new binder
     data = request.get_json()
     name = data.get('name')
 
     #create a new binder and add it to the database
-    new_binder = Binder(name=name)
+    new_binder = Binder(name=name, user_id = current_user.id)
     db.session.add(new_binder)
     db.session.commit()
     return jsonify({'message': 'Binder created successfully!'})
 
 @app.route('/binderlist', methods=['GET'])
+@login_required
 def get_binders():
     #open all binders and return them as a list of dictionaries
-    binders = Binder.query.all()
+    binders = Binder.query.filter_by(user_id = current_user.id).all()
     binder_list = [{'id': binder.id, 'name': binder.name} for binder in binders]
     return jsonify(binder_list)
 
@@ -79,7 +92,7 @@ def register():
     return jsonify({'message': 'User registered successfully!'})
 
 #POST used for security reasons to prevent sensitive information from being exposed in the URL
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=[ 'POST'])
 def login():
     #request for a username and password to create a new user account
     data = request.get_json()
