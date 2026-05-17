@@ -74,6 +74,34 @@ def get_binders():
     binder_list = [{'id': binder.id, 'name': binder.name} for binder in binders]
     return jsonify(binder_list)
 
+@app.route('/binder/<int:id>', methods = ['GET'])
+@login_required
+def view_binder(id):
+    binder = Binder.query.filter_by(id=id).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+    
+    return jsonify({'id': binder.id, 'name': binder.name})
+
+@app.route('/binder/<int:id>', methods = ['DELETE'])
+@login_required
+def delete_binder(id):
+    binder = Binder.query.filter_by(id=id).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+    
+    db.session.delete(binder)
+    db.session.commit()
+    return jsonify({'message': 'Binder successfully deleted'})
+
 @app.route('/register', methods=['POST'])
 def register():
     #request for a username and password to create a new user account
