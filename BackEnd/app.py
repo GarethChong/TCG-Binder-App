@@ -23,12 +23,12 @@ class User(UserMixin, db.Model):
 class Binder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
+    size = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Page(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     page_number = db.Column(db.Integer)
-    page_size = db.Column(db.Integer)
     binder_id = db.Column(db.Integer, db.ForeignKey('binder.id'))
 
 class Card(db.Model):
@@ -37,6 +37,8 @@ class Card(db.Model):
     card_set = db.Column(db.String(100))
     name = db.Column(db.String(100))
     image_url = db.Column(db.String(500))
+    slot_col = db.Column(db.Integer, nullable=False)
+    slot_row = db.Column(db.Integer, nullable=False)
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
 
 #gets the userid and returns a full user object
@@ -59,9 +61,13 @@ def binder_list():
     #request for a name for a new binder
     data = request.get_json()
     name = data.get('name')
+    size = data.get('size')
 
     #create a new binder and add it to the database
-    new_binder = Binder(name=name, user_id = current_user.id)
+    if size < 2 or size > 5:
+        return jsonify({'message': 'Size is too big!'}), 404
+    
+    new_binder = Binder(name=name, size=size, user_id = current_user.id)
     db.session.add(new_binder)
     db.session.commit()
     return jsonify({'message': 'Binder created successfully!'})
@@ -101,6 +107,26 @@ def delete_binder(id):
     db.session.delete(binder)
     db.session.commit()
     return jsonify({'message': 'Binder successfully deleted'})
+
+@app.route('/binder/<int:id>', methods = ['POST'])
+@login_required
+def add_page(id):
+    binder = Binder.query.filter_by(id=id).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+    
+    pages = Page.query.filter_by(binder_id = binder.id).all()
+    if len(pages) >= 30:
+        return jsonify({'message': 'Binder full'}), 404
+    
+    new_page = Page(page_number=len(pages) + 1, binder_id=binder.id)
+    db.session.add(new_page)
+    db.session.commit()
+    return jsonify({'message': 'New page created'})
 
 @app.route('/register', methods=['POST'])
 def register():
