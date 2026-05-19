@@ -86,8 +86,10 @@ def get_binders():
 @app.route('/binder/<int:id>', methods = ['GET'])
 @login_required
 def view_binder(id):
+    #find the binder by the id
     binder = Binder.query.filter_by(id=id).first()
 
+    #check if the binder exist and whether user is allowed access
     if not binder:
         return jsonify({'message': 'Binder does not exist'}), 404
 
@@ -122,6 +124,7 @@ def add_page(id):
     if binder.user_id != current_user.id:
         return jsonify({'message': 'You have no access to this binder'}), 403
     
+    #check the length of pages
     pages = Page.query.filter_by(binder_id = binder.id).all()
     if len(pages) >= 30:
         return jsonify({'message': 'Binder full'}), 409
@@ -135,6 +138,7 @@ def add_page(id):
 @login_required
 def view_page(id, number):
     binder = Binder.query.filter_by(id=id).first()
+    #find the page from binder_id and page number
     page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
 
     if not binder:
@@ -146,7 +150,9 @@ def view_page(id, number):
     if not page:
         return jsonify({'message': 'Page does not exist'}), 404 
     
-    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name} for card in Card.query.filter_by(page_id=page.id).all()]
+    #get necessary card details to be shown to user
+    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name} 
+             for card in Card.query.filter_by(page_id=page.id).all()]
 
     return jsonify({'page_number': page.page_number, 'size': binder.size, 'cards': cards})
 
@@ -168,6 +174,46 @@ def delete_page(id, number):
     db.session.delete(page)
     db.session.commit()
     return jsonify({'message': 'Page successfully deleted'})
+
+@app.route('/binder/<int:id>/page/<int:number>', methods = ['POST'])
+@login_required
+def add_card(id, number):
+    #request for details to find the card to add
+    data = request.get_json()
+    name = data.get('name')
+    card_number = data.get('card_number')
+    card_set = data.get('card_set')
+    image_url = data.get('image_url')
+    slot_row = data.get('slot_row')
+    slot_col = data.get('slot_col')
+
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    #check if position is within binder dimensions
+    if slot_col < 0 or slot_row < 0 or slot_col > binder.size - 1 or slot_row > binder.size - 1:
+        return jsonify({'message': 'Invalid card slot'}), 404 
+    
+    card = Card.query.filter_by(page_id=page.id).filter_by(slot_col=slot_col).filter_by(slot_row=slot_row).first()
+
+    #check if slot is taken
+    if card:
+        return jsonify({'message': 'Slot already occupied by card'}), 404
+    
+    new_card = Card(card_number=card_number, card_set=card_set, name=name,image_url=image_url, 
+                    slot_col=slot_col, slot_row=slot_row, page_id=page.id)
+    db.session.add(new_card)
+    db.session.commit()
+    return jsonify({'message': 'New card added'})
 
 @app.route('/register', methods=['POST'])
 def register():
