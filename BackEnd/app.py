@@ -257,6 +257,66 @@ def register():
     db.session.commit()
     return jsonify({'message': 'User registered successfully!'})
 
+@app.route('/binder/<int:id>/page/<int:number>', methods = ['PUT'])
+@login_required
+def shift_card(id, number):
+    #request for details to find the card positions to swap
+    data = request.get_json()
+    from_col = data.get('from_col')
+    from_row = data.get('from_row')
+    to_col = data.get('to_col')
+    to_row = data.get('to_row')
+
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    #check if position is within binder dimensions
+    if from_col < 0 or from_row < 0 or from_col > binder.size - 1 or from_row > binder.size - 1:
+        return jsonify({'message': 'Invalid starting card slot'}), 404 
+    
+    if to_col < 0 or to_row < 0 or to_col > binder.size - 1 or to_row > binder.size - 1:
+        return jsonify({'message': 'Invalid ending card slot'}), 404 
+    
+    #obtain from and to cards
+    from_card = Card.query.filter_by(page_id=page.id).filter_by(slot_col=from_col).filter_by(slot_row=from_row).first()
+    to_card = Card.query.filter_by(page_id=page.id).filter_by(slot_col=to_col).filter_by(slot_row=to_row).first()
+
+    #if both slots are empty return error
+    if not from_card and not to_card:
+        return jsonify({'message': 'Both slots are empty'}), 404
+    
+    #if either is empty update the non-empty card slot with the new row and columns
+    if from_card and not to_card:
+        from_card.slot_col = to_col
+        from_card.slot_row = to_row
+        db.session.commit()
+        return jsonify({'message': 'Card shifted successfully'})
+    
+    if not from_card and to_card:
+        to_card.slot_col = from_col
+        to_card.slot_row = from_row
+        db.session.commit()
+        return jsonify({'message': 'Card shifted successfully'})
+
+    #else update both cards with the new rows and columns
+    if from_card and to_card:
+        from_card.slot_col = to_col
+        from_card.slot_row = to_row
+        to_card.slot_col = from_col
+        to_card.slot_row = from_row
+        db.session.commit()
+        return jsonify({'message': 'Cards shifted successfully'})
+
+
 #POST used for security reasons to prevent sensitive information from being exposed in the URL
 @app.route('/login', methods=[ 'POST'])
 def login():
