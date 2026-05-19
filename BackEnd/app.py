@@ -203,6 +203,7 @@ def add_card(id, number):
     if slot_col < 0 or slot_row < 0 or slot_col > binder.size - 1 or slot_row > binder.size - 1:
         return jsonify({'message': 'Invalid card slot'}), 404 
     
+    #can only check if card exists after validating page and binder exists so as to not crash the program
     card = Card.query.filter_by(page_id=page.id).filter_by(slot_col=slot_col).filter_by(slot_row=slot_row).first()
 
     #check if slot is taken
@@ -214,6 +215,30 @@ def add_card(id, number):
     db.session.add(new_card)
     db.session.commit()
     return jsonify({'message': 'New card added'})
+
+@app.route('/binder/<int:id>/page/<int:number>/card/<card_id>', methods = ['DELETE'])
+@login_required
+def delete_card(id, number, card_id):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    card = Card.query.filter_by(page_id=page.id).filter_by(id=card_id).first()
+
+    if not card:
+        return jsonify({'message': 'Card does not exist'}), 404 
+
+    db.session.delete(card)
+    db.session.commit()
+    return jsonify({'message': 'Card successfully deleted'})
 
 @app.route('/register', methods=['POST'])
 def register():
