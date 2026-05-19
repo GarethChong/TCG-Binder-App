@@ -20,16 +20,19 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    binders = db.relationship('Binder', backref='user', cascade='all, delete-orphan')
 class Binder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     size = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    pages = db.relationship('Page', backref='binder', cascade='all, delete-orphan')
 
 class Page(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     page_number = db.Column(db.Integer)
     binder_id = db.Column(db.Integer, db.ForeignKey('binder.id'))
+    cards = db.relationship('Card', backref='page', cascade='all, delete-orphan')
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,7 +47,7 @@ class Card(db.Model):
 #gets the userid and returns a full user object
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 #signals frontend to redirect unauthorized user
 @login_manager.unauthorized_handler
@@ -121,12 +124,50 @@ def add_page(id):
     
     pages = Page.query.filter_by(binder_id = binder.id).all()
     if len(pages) >= 30:
-        return jsonify({'message': 'Binder full'}), 404
+        return jsonify({'message': 'Binder full'}), 409
     
     new_page = Page(page_number=len(pages) + 1, binder_id=binder.id)
     db.session.add(new_page)
     db.session.commit()
     return jsonify({'message': 'New page created'})
+
+@app.route('/binder/<int:id>/page/<int:number>', methods = ['GET'])
+@login_required
+def view_page(id, number):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name} for card in Card.query.filter_by(page_id=page.id).all()]
+
+    return jsonify({'page_number': page.page_number, 'size': binder.size, 'cards': cards})
+
+@app.route('/binder/<int:id>/page/<int:number>', methods = ['DELETE'])
+@login_required
+def delete_page(id, number):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    db.session.delete(page)
+    db.session.commit()
+    return jsonify({'message': 'Page successfully deleted'})
 
 @app.route('/register', methods=['POST'])
 def register():
