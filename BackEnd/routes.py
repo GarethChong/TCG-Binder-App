@@ -50,6 +50,40 @@ def login():
     else:
         return jsonify({'message': 'Incorrect password!'}), 400
 
+@routes.route('/cards/search', methods=['GET'])
+@login_required
+def card_search():
+    name = request.args.get('name')
+    
+    #look for card based on name
+    headers = {'X-Api-Key': POKEMON_API_KEY}
+    response = requests.get(
+        'https://api.pokemontcg.io/v2/cards',
+        params={'q': f'name:{name}'},
+        headers=headers
+    )
+    
+    data = response.json()
+    print(f"Searching for: {name}")
+    print(f"Response: {data}")
+
+    #if pokemon does not exist
+    if not data['data']:
+        return jsonify({'message': 'Pokemon does not exist'}), 404  
+    
+    cards = [
+        {
+            'name': card['name'],
+            'set': card['set']['name'],
+            'number': card['number'],
+            'image': card['images']['small']
+        }
+        for card in data['data']
+    ]
+
+    return jsonify(cards)
+
+
 @routes.route('/binderlist', methods=['POST'])
 @login_required
 def binder_list():
@@ -318,7 +352,6 @@ def check_price(id, number, card_id):
         params={'q': f'name:{card.name} number:{card.card_number}'},
         headers=headers
     )
-    print(f"name:{card.name} set.name:{card.card_set} number:{card.card_number}")
 
     data = response.json()
 
