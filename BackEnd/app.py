@@ -1,17 +1,24 @@
+import os
 from flask import Flask, jsonify
 from flask_login import LoginManager
 from models import db, bcrypt, User
 from routes import routes as routes_blueprint
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #Flask knows which module to look for resources such as templates and static files, and it also allows the application to be run directly from this file.
 app = Flask(__name__)
 #dictionary that holds the configuration settings for the Flask application, specifically the URI for the SQLite database. 
 #tells SQLAlchemy where to find the database file (cards.db) that will be used to store and manage the card data.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cards.db'
-app.config['SECRET_KEY'] = 'hello i like cards'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+#initialise the app
 db.init_app(app)
 bcrypt.init_app(app)
 
+#connects the routes to the app
 app.register_blueprint(routes_blueprint)
 
 login_manager = LoginManager(app)

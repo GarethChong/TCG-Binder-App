@@ -1,6 +1,10 @@
+import os
+import requests
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, bcrypt, User, Binder, Page, Card
+
+POKEMON_API_KEY = os.getenv('POKEMON_API_KEY')
 
 routes = Blueprint('routes', __name__)
 
@@ -286,3 +290,45 @@ def shift_card(id, number):
         to_card.slot_row = from_row
         db.session.commit()
         return jsonify({'message': 'Cards shifted successfully'})
+
+@routes.route('/binder/<int:id>/page/<int:number>/card/<card_id>/price', methods = ['GET'])
+@login_required
+def check_price(id, number, card_id):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    card = Card.query.filter_by(page_id=page.id).filter_by(id=card_id).first()
+
+    if not card:
+        return jsonify({'message': 'Card does not exist'}), 404 
+
+    #look for card based on name, card set and card number
+    headers = {'X-Api-Key': POKEMON_API_KEY}
+    response = requests.get(
+        'https://api.pokemontcg.io/v2/cards',
+        params={'q': f'name:{card.name} number:{card.card_number}'},
+        headers=headers
+    )
+    print(f"name:{card.name} set.name:{card.card_set} number:{card.card_number}")
+
+    data = response.json()
+
+    #if card data cannot be extracted
+    if not data['data']:
+        return jsonify({'message': 'Card does not exist'}), 404  
+
+    #check if price does not exist, before accessing and returning the card price value
+    if 'tcgplayer' not in data['data'][0]:
+        return jsonify({'message': 'No pricing available for this card'}), 404
+    
+    price = data['data'][0]['tcgplayer']['prices']
+    return jsonify(price)
