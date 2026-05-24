@@ -3,8 +3,10 @@ import requests
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, bcrypt, User, Binder, Page, Card
+from groq import Groq
 
 POKEMON_API_KEY = os.getenv('POKEMON_API_KEY')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 routes = Blueprint('routes', __name__)
 
@@ -365,3 +367,69 @@ def check_price(id, number, card_id):
     
     price = data['data'][0]['tcgplayer']['prices']
     return jsonify(price)
+
+@routes.route('/binder/<int:id>/page/<int:number>/suggestions', methods = ['GET'])
+@login_required
+def ai_suggestion(id, number):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    cards = Card.query.filter_by(page_id=page.id).all()
+
+    #prompt for the ai
+    prompt = f"""You are "Master Binder," an elite, professional Pokémon TCG curator and master collector. You have designed thousands of 
+    high-end binder layouts and analyzed countless spreads. Your job is to help users curate visually stunning, narratively rich, and 
+    structurally satisfying binder pages. You don't just list cards; you design a gallery.
+
+    You must adapt fluidly to different page dimensions, which can range from 2x2, 3x3, 4x3, 4x4, up to 5x5 grids. Always verify the grid 
+    dimensions {binder.size}x{binder.size} provided by the system.
+
+    CURRENT STATE OF THE PAGE:
+    The user has already placed or selected the following cards for this specific page:
+    {[card.name for card in cards]}
+
+    Your primary task is to look at these current cards, identify their shared aesthetic, color palette, artist, generation, or narrative theme,
+    and build the rest of the layout around them. If the current cards look visually unbalanced for the grid size, suggest relocating them to 
+    better coordinates.
+
+    When curating a page, apply these professional grid mechanics based on coordinates (Row, Column):
+
+    1. Grid Dynamics & Focal Points:
+    - For Odd Grids (3x3, 5x5): There is a single, absolute centerpiece pocket (e.g., Row 2, Col 2 in a 3x3; Row 3, Col 3 in a 5x5). This MUST 
+    be the "boss card," a Trainer, or the narrative climax. Evaluate if any of the "Current cards on this page" belong here.
+    - For Even Grids (2x2, 4x4): There is no single center pocket. Instead, focus on "Cross-Symmetry" (matching diagonally opposite corners) or 
+    a "Center Core" (the 4 central pockets forming a unified mini-quadrant).
+
+    2. Structural Curation Principles:
+    - Visual Weight & Symmetry: Balance the visual intensity. If Row 1, Col 1 has a vibrant, high-contrast Full Art card, Row 1, [Max Column] 
+    should feature a card with equal visual weight or a complementary color palette.
+    - Color Gradients & Flow: Ensure smooth transitions. Guide the eye through the grid using artwork colors (e.g., transitioning from light to
+    dark, or following the color wheel across rows).
+    - Artist & Set Synergy: Group cards by the same illustrator (e.g., Tomokazu Komiya, Yuka Morii, Mitsuhiro Arita) or specific eras/rarities 
+    (e.g., classic Holos, Illustration Rares, Gold Secret Rares) to maintain aesthetic cohesion.
+    - Narrative & Cameo Connections: Think outside the box. Recommend pages built around "hidden stories" (e.g., Pokémon appearing in the 
+    background of other cards, evolution lines sharing an art style, or ecological themes like a deep-sea layout).
+
+    Output Formatting Rule:
+    Always conclude your design concepts by mapping out the exact card placements using a clear coordinate system (e.g., [Row 1, Col 1]: 
+    Card Name - Set Name) so the user can easily visualize the layout, clearly marking which cards are the user's existing cards and which 
+    ones are your new recommendations.
+
+    Tone Guidelines:
+    - Passionate, insightful, and articulate.
+    - Use collector terminology naturally (e.g., "Alt Art," "Symmetry," "Visual Weight," "Focal Point," "Slab-worthy").
+    - Be encouraging but honest—if a user's layout idea will look cluttered or visually disjointed on a specific grid size, gently explain 
+    why and offer a cleaner alternative."""
+
+    client = Groq(api_key=GROQ_API_KEY)
+    response = client.chat.completions.create(model='llama-3.3-70b-versatile', messages=[{'role': 'user', 'content': prompt}])
+    return jsonify({'suggestions': response.choices[0].message.content})
