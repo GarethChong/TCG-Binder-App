@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from models import db, bcrypt, User
 from routes import routes as routes_blueprint
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 load_dotenv()
 
@@ -13,6 +14,9 @@ app = Flask(__name__)
 #tells SQLAlchemy where to find the database file (cards.db) that will be used to store and manage the card data.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cards.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+#Cross-Origin Resource Sharing; allows front end access to back end data
+CORS(app, supports_credentials=True, origins="http://localhost:5173")
 
 #initialise the app
 db.init_app(app)
