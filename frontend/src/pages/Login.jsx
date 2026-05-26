@@ -9,11 +9,12 @@ function Login() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
-    const [successMessage, setSuccessMessage] = useState('')
+    const [message, setMessage] = useState('')
     useEffect(() => {
         //when the component first loads store the meesage if there exists one in router state
+        //empty array only runs once when the component first loads, if no array runs on every render
         if (location.state?.message) {
-            setSuccessMessage(location.state.message)
+            setMessage(location.state.message)
             }
         }, [])
 
@@ -30,7 +31,7 @@ function Login() {
         if (response.ok) {
             navigate('/', { state: { message: data.message } })
         } else {
-            setSuccessMessage('')
+            setMessage('')
             setError(data.message)
         }
     }
@@ -38,7 +39,7 @@ function Login() {
     return (
         <div>
             <h1>TCG Binder App</h1>
-            {successMessage && <p>{successMessage}</p>}
+            {message && <p>{message}</p>}
             {error && <p>{error}</p>}
             <input 
                 type="text" 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
     return (
@@ -9,7 +10,11 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/binderlist" element={<h1>Binder List</h1>} />
+                <Route path="/binderlist" element={
+                  <ProtectedRoute>
+                    <h1>Binder List</h1>
+                  </ProtectedRoute>
+                } />
             </Routes>
         </BrowserRouter>
     )

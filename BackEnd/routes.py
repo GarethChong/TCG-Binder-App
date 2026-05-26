@@ -52,6 +52,14 @@ def login():
     else:
         return jsonify({'message': 'Incorrect password!'}), 400
 
+@routes.route('/auth/check', methods=['GET'])
+def authenticate():
+    if current_user.is_authenticated:
+        return jsonify({'authenticated': True})
+    else:
+        return jsonify({'authenticated': False})
+
+
 @routes.route('/cards/search', methods=['GET'])
 @login_required
 def card_search():
