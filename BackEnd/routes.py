@@ -52,6 +52,12 @@ def login():
     else:
         return jsonify({'message': 'Incorrect password!'}), 400
 
+@routes.route('/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return jsonify({'message': 'User logged out successfully'})
+
+#authentication route to ensure user is authenticated
 @routes.route('/auth/check', methods=['GET'])
 def authenticate():
     if current_user.is_authenticated:
