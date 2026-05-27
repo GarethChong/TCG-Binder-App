@@ -5,11 +5,38 @@ function BinderList() {
     const [binders, setBinders] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
+
+    //for creating new binders
+    const [name, setName] = useState('')
+    const [size, setSize] = useState(0)
     const navigate = useNavigate()
 
     useEffect(() => {
         getBinders()
     }, [])
+
+    const createBinder = async () => {
+        try {
+            setLoading(true)
+            const response = await fetch('http://localhost:5000/binderlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name, size })
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to create binder')
+            }
+
+            const data = await response.json()
+            setBinders([...binders, data])
+        } catch (err) {
+            setError(true)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const getBinders = async () => {
         try {
@@ -54,6 +81,20 @@ function BinderList() {
                 {binders.map(binder => (
                     <p key={binder.id}>{binder.name}</p>
                 ))}
+                <hr />
+                <input
+                    type="text"
+                    placeholder="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <input
+                    type="number"
+                    placeholder="size"
+                    value={size}
+                    onChange={(e) => setSize(parseInt(e.target.value))}
+                />
+                <button onClick={createBinder}>Create New Binder</button>
                 <button onClick={() => logout()}>Logout</button>
             </div>
 }

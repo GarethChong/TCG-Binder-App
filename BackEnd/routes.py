@@ -115,7 +115,7 @@ def binder_list():
     new_binder = Binder(name=name, size=size, user_id = current_user.id)
     db.session.add(new_binder)
     db.session.commit()
-    return jsonify({'message': 'Binder created successfully!'})
+    return jsonify({'id': new_binder.id, 'name': new_binder.name})
 
 @routes.route('/binderlist', methods=['GET'])
 @login_required
