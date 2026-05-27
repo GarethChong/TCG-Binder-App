@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import BinderList from './pages/BinderList'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -12,7 +13,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/binderlist" element={
                   <ProtectedRoute>
-                    <h1>Binder List</h1>
+                    <BinderList />
                   </ProtectedRoute>
                 } />
             </Routes>

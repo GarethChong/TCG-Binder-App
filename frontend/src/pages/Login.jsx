@@ -19,17 +19,17 @@ function Login() {
         }, [])
 
     const handleLogin = async () => {
-    //call the backend
-    const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', //essential for flask login sessions
-        body: JSON.stringify({ username, password })
-    })
+        //call the backend
+        const response = await fetch('http://localhost:5000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', //essential for flask login sessions
+            body: JSON.stringify({ username, password })
+        })
         const data = await response.json()
 
         if (response.ok) {
-            navigate('/', { state: { message: data.message } })
+            navigate('/binderlist', { state: { message: data.message } })
         } else {
             setMessage('')
             setError(data.message)
