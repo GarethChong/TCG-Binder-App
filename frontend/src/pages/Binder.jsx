@@ -1,0 +1,79 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+function Binder() {
+    const [binder, setBinder] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
+    const [pages, setPages] = useState([])
+    const navigate = useNavigate()
+
+    // get the binder id
+    const { id } = useParams()
+
+    useEffect(() => {
+        getBinder()
+    }, [])
+
+    const getBinder = async () => {
+        try {
+            setLoading(true)
+            const response = await fetch(`http://localhost:5000/binder/${id}`, {
+                method: 'GET',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to get binder')
+            }
+
+            const data = await response.json()
+            setBinder(data)
+            setPages(data.pages)
+        } catch (err) {
+            setError(true)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const addPage = async () => {
+        try {
+            setLoading(true)
+            const response = await fetch(`http://localhost:5000/binder/${id}`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to add page')
+            }
+
+            const data = await response.json()
+            setPages([...pages, data])
+        } catch (err) {
+            setError(true)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return loading
+        ? <p>Loading...</p>
+        : error
+            ? <p>Sorry, could not fetch Binder</p>
+            : <div>
+                <h1>
+                    Binder {id}
+                </h1>
+                <p>{binder.name}</p>
+                {pages.map(page => (
+                    <p key={page.id}>{page.page_number}</p>
+                ))}
+                <button onClick={() => addPage()}>Add Page</button>
+                <button onClick={() => navigate('/binderlist')}>BinderList</button>
+            </div>
+
+}
+
+export default Binder

@@ -79,7 +79,7 @@ function BinderList() {
                     Binder List
                 </h1>
                 {binders.map(binder => (
-                    <p key={binder.id}>{binder.name}</p>
+                    <p onClick={() => navigate(`/binder/${binder.id}`)} key={binder.id}>{binder.name}</p>
                 ))}
                 <hr />
                 <input

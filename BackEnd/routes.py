@@ -138,7 +138,10 @@ def view_binder(id):
     if binder.user_id != current_user.id:
         return jsonify({'message': 'You have no access to this binder'}), 403
     
-    return jsonify({'id': binder.id, 'name': binder.name})
+    pages = Page.query.filter_by(binder_id = binder.id).all()
+    page_list = [{'id': page.id, 'page_number': page.page_number} for page in pages]
+
+    return jsonify({'id': binder.id, 'name': binder.name, 'pages': page_list})
 
 @routes.route('/binder/<int:id>', methods = ['DELETE'])
 @login_required
@@ -174,7 +177,7 @@ def add_page(id):
     new_page = Page(page_number=len(pages) + 1, binder_id=binder.id)
     db.session.add(new_page)
     db.session.commit()
-    return jsonify({'message': 'New page created'})
+    return jsonify({'id': new_page.id, 'page_number': new_page.page_number})
 
 @routes.route('/binder/<int:id>/page/<int:number>', methods = ['GET'])
 @login_required
