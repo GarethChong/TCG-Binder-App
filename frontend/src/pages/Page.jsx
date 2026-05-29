@@ -13,6 +13,13 @@ function Page() {
     const [cardList, setCardList] = useState([])
     const [search, setSearch] = useState("")
 
+    //states for card swapping
+    const [fromSlot, setFromSlot] = useState(null)
+    const [toSlot, setToSlot] = useState(null)
+
+    //state to change between swapping and addition
+    const [mode, setMode] = useState('add')
+
     const { id, number } = useParams()
 
     useEffect(() => {
@@ -89,6 +96,33 @@ function Page() {
         }
     }
 
+    const swapCard = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    from_row: fromSlot[0],
+                    from_col: fromSlot[1],
+                    to_row: toSlot[0],
+                    to_col: toSlot[1],
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to swap carda')
+            }
+
+            const data = await response.json()
+            setFromSlot(null)
+            setToSlot(null)
+            getPage()
+        } catch (err) {
+            setError(true)
+        }
+    }
+
     const deleteCard = async (card) => {
         try {
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}`, {
@@ -121,19 +155,50 @@ function Page() {
                             const card = cards.find(c => c.slot_row === row && c.slot_col === col)
                             return ( //span sits next to other elements, div starts a new line
                                 <span key={col} style={{ margin: '5px' }}>
-                                    {card
+                                    {card // checks if cards exist or if the slot is empty
                                         ? <div>
                                             {card.name}
                                             <button onClick={() => deleteCard(card)}>delete card</button>
-                                            </div>
-                                        : <button onClick={() => setSlot([row, col])}>empty</button> //onclick only avail if empty
+                                            {mode === 'swap' && ( //only shows in swapmode 
+                                                <button onClick={() => {
+                                                    if (!fromSlot) {
+                                                        setFromSlot([row, col])
+                                                    } else if (!toSlot) {
+                                                        setToSlot([row, col])
+                                                    } else {
+                                                        setFromSlot(toSlot)
+                                                        setToSlot([row, col])
+                                                    }
+                                                }}>Select</button>
+                                            )}
+                                        </div>
+                                        : mode === 'add' //if slot is empty, checks if it is in add or swap mode
+                                            ? <button onClick={() => setSlot([row, col])}>empty</button>
+                                            : <button onClick={() => {
+                                                if (!fromSlot) {
+                                                    setFromSlot([row, col])
+                                                } else if (!toSlot) {
+                                                    setToSlot([row, col])
+                                                } else {
+                                                    setFromSlot(toSlot)
+                                                    setToSlot([row, col])
+                                                }
+                                            }}>empty</button>
                                     }
                                 </span>
                             )
                         })}
                     </div>
                 ))}
-                {slot && (
+                <button onClick={() => {
+                    setMode(mode === 'add' ? 'swap' : 'add') //button to toggle between modes; reset all states when toggling modes
+                    setSlot(null)
+                    setCardList([])
+                    setSearch("")
+                    setFromSlot(null)
+                    setToSlot(null)
+                }}>Switch to {mode === 'add' ? 'Swap' : 'Add'} Mode</button>
+                {mode === 'add' && slot && (
                     <div>
                         <input
                             type="text"
@@ -149,6 +214,15 @@ function Page() {
                                 <button onClick={() => addCard(card)}>Add Card</button>
                             </div>
                         ))}
+                    </div>
+                )}
+                {mode === 'swap' && (
+                    <div>
+                        <p>From slot: {fromSlot ? `row ${fromSlot[0]}, col ${fromSlot[1]}` : 'not selected'}</p>
+                        <p>To slot: {toSlot ? `row ${toSlot[0]}, col ${toSlot[1]}` : 'not selected'}</p>
+                        {fromSlot && toSlot && (
+                            <button onClick={() => swapCard()}>Swap</button>
+                        )}
                     </div>
                 )}
                 <button onClick={() => navigate(`/binder/${id}`)}>Back to binder</button>
