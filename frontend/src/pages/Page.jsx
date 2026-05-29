@@ -20,6 +20,10 @@ function Page() {
     //state to change between swapping and addition
     const [mode, setMode] = useState('add')
 
+    //state to check the prices
+    const [loadingPrice, setLoadingPrice] = useState({})
+    const [prices, setPrices] = useState({})
+
     const { id, number } = useParams()
 
     useEffect(() => {
@@ -141,6 +145,28 @@ function Page() {
         }
     }
 
+    const getPrice = async (card) => {
+        try {
+            setLoadingPrice({ ...loadingPrice, [card.id]: true })
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}/price`, {
+                method: 'GET',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch price of card')
+            }
+
+            const data = await response.json()
+            setPrices({ ...prices, [card.id]: data })
+        } catch (err) {
+            setError(true)
+        } finally {
+            setLoadingPrice({ ...loadingPrice, [card.id]: false })
+        }
+    }
+
+
     return loading
         ? <p>Loading...</p>
         : error
@@ -158,6 +184,18 @@ function Page() {
                                     {card // checks if cards exist or if the slot is empty
                                         ? <div>
                                             {card.name}
+                                            {prices[card.id]
+                                                ? <div>
+                                                    {Object.entries(prices[card.id]).map(([type, values]) => (
+                                                        <div key={type}>
+                                                            <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                : loadingPrice[card.id]
+                                                    ? <p>Loading Price...</p>
+                                                    : <button onClick={() => getPrice(card)}>Check Price</button>
+                                            }
                                             <button onClick={() => deleteCard(card)}>delete card</button>
                                             {mode === 'swap' && ( //only shows in swapmode 
                                                 <button onClick={() => {
