@@ -58,6 +58,24 @@ function BinderList() {
         }
     }
 
+    const deleteBinder = async (binder) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${binder.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to delete binder')
+            }
+
+            const data = await response.json()
+            setBinders(binders.filter(b => b.id != binder.id)) //update binder selection
+        } catch (err) {
+            setError(true)
+        }
+    }
+
     const logout = async () => {
         const response = await fetch('http://localhost:5000/logout', {
             method: 'POST',
@@ -79,7 +97,10 @@ function BinderList() {
                     Binder List
                 </h1>
                 {binders.map(binder => (
-                    <p onClick={() => navigate(`/binder/${binder.id}`)} key={binder.id}>{binder.name}</p>
+                    <div key={binder.id}>
+                    <p onClick={() => navigate(`/binder/${binder.id}`)}>{binder.name}</p>
+                    <button onClick={() => deleteBinder(binder)}>Delete Binder</button>
+                    </div>
                 ))}
                 <hr />
                 <input

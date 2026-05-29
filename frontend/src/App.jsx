@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import BinderList from './pages/BinderList'
 import Binder from './pages/Binder'
+import Page from './pages/Page'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -20,6 +21,11 @@ function App() {
                 <Route path="/binder/:id" element={
                   <ProtectedRoute>
                     <Binder />
+                  </ProtectedRoute>
+                } />
+                <Route path="/binder/:id/page/:number" element={
+                  <ProtectedRoute>
+                    <Page />
                   </ProtectedRoute>
                 } />
             </Routes>

@@ -196,7 +196,7 @@ def view_page(id, number):
         return jsonify({'message': 'Page does not exist'}), 404 
     
     #get necessary card details to be shown to user
-    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name} 
+    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url} 
              for card in Card.query.filter_by(page_id=page.id).all()]
 
     return jsonify({'page_number': page.page_number, 'size': binder.size, 'cards': cards})
@@ -218,6 +218,13 @@ def delete_page(id, number):
     
     db.session.delete(page)
     db.session.commit()
+
+    #filter_by only filters equal; lower all remaining pages by 1 
+    larger_pages = Page.query.filter_by(binder_id=id).filter(Page.page_number > number).all()
+    for page in larger_pages:
+        page.page_number -= 1
+    db.session.commit()
+
     return jsonify({'message': 'Page successfully deleted'})
 
 @routes.route('/binder/<int:id>/page/<int:number>', methods = ['POST'])
@@ -259,7 +266,7 @@ def add_card(id, number):
                     slot_col=slot_col, slot_row=slot_row, page_id=page.id)
     db.session.add(new_card)
     db.session.commit()
-    return jsonify({'message': 'New card added'})
+    return jsonify({'id': new_card.id, 'name': new_card.name, 'slot_row': new_card.slot_row, 'slot_col': new_card.slot_col, 'image_url': new_card.image_url})
 
 @routes.route('/binder/<int:id>/page/<int:number>/card/<card_id>', methods = ['DELETE'])
 @login_required

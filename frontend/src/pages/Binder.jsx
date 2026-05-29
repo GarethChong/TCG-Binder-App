@@ -58,6 +58,24 @@ function Binder() {
         }
     }
 
+    const deletePage = async (page) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${page.page_number}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to delete page')
+            }
+
+            const data = await response.json()
+            getBinder()
+        } catch (err) {
+            setError(true)
+        }
+    }
+
     return loading
         ? <p>Loading...</p>
         : error
@@ -68,7 +86,10 @@ function Binder() {
                 </h1>
                 <p>{binder.name}</p>
                 {pages.map(page => (
-                    <p key={page.id}>{page.page_number}</p>
+                    <div key={page.id}>
+                        <p onClick={() => navigate(`/binder/${binder.id}/page/${page.page_number}`)}> {page.page_number}</p>
+                        <button onClick={() => deletePage(page)}>Delete Page</button>
+                    </div>
                 ))}
                 <button onClick={() => addPage()}>Add Page</button>
                 <button onClick={() => navigate('/binderlist')}>BinderList</button>
