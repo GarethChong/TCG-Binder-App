@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { handleError } from '../utils'
 
 function Page() {
     const [page, setPage] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
+    const [error, setError] = useState(null)
     const [cards, setCards] = useState([])
     const navigate = useNavigate()
 
@@ -44,14 +45,14 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to get page')
+                await handleError(response)
             }
 
             const data = await response.json()
             setPage(data)
             setCards(data.cards)
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -65,13 +66,13 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to find card')
+                await handleError(response)
             }
 
             const data = await response.json()
             setCardList(data)
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
@@ -92,7 +93,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to add card')
+                await handleError(response)
             }
 
             const data = await response.json()
@@ -101,7 +102,7 @@ function Page() {
             setSearch("")
             setCards([...cards, data])
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
@@ -120,7 +121,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to swap carda')
+                await handleError(response)
             }
 
             const data = await response.json()
@@ -128,7 +129,7 @@ function Page() {
             setToSlot(null)
             getPage()
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
@@ -140,35 +141,35 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to delete card')
+                await handleError(response)
             }
 
             const data = await response.json()
             setCards(cards.filter(c => c.id !== card.id)) //removing the deleted card
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
     const getPrice = async (card) => {
         try {
-            setLoadingPrice(prev => ({...prev, [card.id]: true}))
+            setLoadingPrice(prev => ({ ...prev, [card.id]: true }))
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}/price`, {
                 method: 'GET',
                 credentials: 'include',
             })
 
             if (!response.ok) {
-                setPrices(prev => ({...prev, [card.id]: 'unavailable'}))
+                setPrices(prev => ({ ...prev, [card.id]: 'unavailable' }))
                 return
             }
 
             const data = await response.json()
-            setPrices(prev => ({...prev, [card.id]: data}))
+            setPrices(prev => ({ ...prev, [card.id]: data }))
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
-            setLoadingPrice(prev =>  ({...prev, [card.id]: false }))
+            setLoadingPrice(prev => ({ ...prev, [card.id]: false }))
         }
     }
 
@@ -182,13 +183,13 @@ function Page() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to fetch ai suggestion')
+                await handleError(response)
             }
 
             const data = await response.json()
             setSuggestions(data.suggestions)
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoadingSuggestions(false)
         }
@@ -198,7 +199,7 @@ function Page() {
     return loading
         ? <p>Loading...</p>
         : error
-            ? <p>Sorry, could not fetch Page</p>
+            ? <p>{error}</p>
             : <div>
                 <h1>
                     Page {number}

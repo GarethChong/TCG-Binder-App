@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { handleError } from '../utils'
 
 function BinderList() {
     const [binders, setBinders] = useState([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
+    const [error, setError] = useState(null)
 
     //for creating new binders
     const [name, setName] = useState('')
@@ -26,13 +27,13 @@ function BinderList() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to create binder')
+                await handleError(response)
             }
 
             const data = await response.json()
             setBinders([...binders, data])
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -46,13 +47,13 @@ function BinderList() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to fetch binders')
+                await handleError(response)
             }
 
             const data = await response.json()
             setBinders(data)
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -66,13 +67,13 @@ function BinderList() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to delete binder')
+                await handleError(response)
             }
 
             const data = await response.json()
             setBinders(binders.filter(b => b.id != binder.id)) //update binder selection
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
@@ -91,7 +92,7 @@ function BinderList() {
     return loading
         ? <p>Loading...</p>
         : error
-            ? <p>Sorry, could not fetch Binders</p>
+            ? <p>{error}</p>
             : <div>
                 <h1>
                     Binder List

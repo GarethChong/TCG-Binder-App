@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { handleError } from '../utils'
 
 function Binder() {
     const [binder, setBinder] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
+    const [error, setError] = useState(null)
     const [pages, setPages] = useState([])
     const navigate = useNavigate()
 
@@ -24,14 +25,14 @@ function Binder() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to get binder')
+                await handleError(response)
             }
 
             const data = await response.json()
             setBinder(data)
             setPages(data.pages)
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -46,13 +47,13 @@ function Binder() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to add page')
+                await handleError(response)
             }
 
             const data = await response.json()
             setPages([...pages, data])
         } catch (err) {
-            setError(true)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -66,20 +67,20 @@ function Binder() {
             })
 
             if (!response.ok) {
-                throw new Error('Failed to delete page')
+                await handleError(response)
             }
 
             const data = await response.json()
             getBinder()
         } catch (err) {
-            setError(true)
+            setError(err.message)
         }
     }
 
     return loading
         ? <p>Loading...</p>
         : error
-            ? <p>Sorry, could not fetch Binder</p>
+            ? <p>{error}</p>
             : <div>
                 <h1>
                     Binder {id}
