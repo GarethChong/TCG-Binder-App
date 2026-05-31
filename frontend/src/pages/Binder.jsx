@@ -85,7 +85,7 @@ function Binder() {
                     Binder {id}
                 </h1>
                 <p>{binder.name}</p>
-                {pages.map(page => (
+                {pages.map(page => ( //list of pages
                     <div key={page.id}>
                         <p onClick={() => navigate(`/binder/${binder.id}/page/${page.page_number}`)}> {page.page_number}</p>
                         <button onClick={() => deletePage(page)}>Delete Page</button>

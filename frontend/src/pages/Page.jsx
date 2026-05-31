@@ -152,22 +152,23 @@ function Page() {
 
     const getPrice = async (card) => {
         try {
-            setLoadingPrice({ ...loadingPrice, [card.id]: true })
+            setLoadingPrice(prev => ({...prev, [card.id]: true}))
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}/price`, {
                 method: 'GET',
                 credentials: 'include',
             })
 
             if (!response.ok) {
-                throw new Error('Failed to fetch price of card')
+                setPrices(prev => ({...prev, [card.id]: 'unavailable'}))
+                return
             }
 
             const data = await response.json()
-            setPrices({ ...prices, [card.id]: data })
+            setPrices(prev => ({...prev, [card.id]: data}))
         } catch (err) {
             setError(true)
         } finally {
-            setLoadingPrice({ ...loadingPrice, [card.id]: false })
+            setLoadingPrice(prev =>  ({...prev, [card.id]: false }))
         }
     }
 
@@ -210,15 +211,17 @@ function Page() {
                                 <span key={col} style={{ margin: '5px' }}>
                                     {card // checks if cards exist or if the slot is empty
                                         ? <div>
-                                            {card.name}
-                                            {prices[card.id]
-                                                ? <div>
-                                                    {Object.entries(prices[card.id]).map(([type, values]) => (
-                                                        <div key={type}>
-                                                            <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                            <img src={card.image_url} alt={card.name} style={{ width: '50px' }} />
+                                            {prices[card.id] //check if prices have been fetched, else it fetches them
+                                                ? prices[card.id] === 'unavailable' //note: no pricing vs not loading is different
+                                                    ? <p>No pricing available</p>
+                                                    : <div>
+                                                        {Object.entries(prices[card.id]).map(([type, values]) => (
+                                                            <div key={type}>
+                                                                <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 : loadingPrice[card.id]
                                                     ? <p>Loading Price...</p>
                                                     : <button onClick={() => getPrice(card)}>Check Price</button>
@@ -267,7 +270,7 @@ function Page() {
                     <div>
                         <input
                             type="text"
-                            placeholder="Seach card"
+                            placeholder="Search card"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
