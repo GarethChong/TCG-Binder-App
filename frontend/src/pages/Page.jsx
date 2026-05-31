@@ -24,6 +24,11 @@ function Page() {
     const [loadingPrice, setLoadingPrice] = useState({})
     const [prices, setPrices] = useState({})
 
+    //state for ai suggestions
+    const [showModal, setShowModal] = useState(false)
+    const [suggestions, setSuggestions] = useState("")
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+
     const { id, number } = useParams()
 
     useEffect(() => {
@@ -166,6 +171,28 @@ function Page() {
         }
     }
 
+    const aiSuggestions = async () => {
+        try {
+            setShowModal(true)
+            setLoadingSuggestions(true)
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/suggestions`, {
+                method: 'GET',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch ai suggestion')
+            }
+
+            const data = await response.json()
+            setSuggestions(data.suggestions)
+        } catch (err) {
+            setError(true)
+        } finally {
+            setLoadingSuggestions(false)
+        }
+    }
+
 
     return loading
         ? <p>Loading...</p>
@@ -263,6 +290,32 @@ function Page() {
                         )}
                     </div>
                 )}
+                <button onClick={() => aiSuggestions()}>AI Suggestions</button>
+                {showModal && ( //modal for ai suggestions
+                    <div style={{
+                        position: 'fixed',
+                        top: 0, left: 0,
+                        width: '100%', height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.5)'  //dark overlay
+                    }}>
+                        <div style={{
+                            background: 'white',
+                            margin: '10% auto',
+                            padding: '20px',
+                            width: '60%',
+                            maxHeight: '70vh',
+                            overflowY: 'auto'  //make it scrollable
+                        }}>
+                            <h2>AI Suggestions</h2>
+                            {loadingSuggestions //checks if loading
+                                ? <p>Generating suggestions...</p>
+                                : <p>{suggestions}</p>
+                            }
+                            <button onClick={() => setShowModal(false)}>Close</button>
+                        </div>
+                    </div>
+                )}
+
                 <button onClick={() => navigate(`/binder/${id}`)}>Back to binder</button>
             </div>
 }

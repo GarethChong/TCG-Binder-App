@@ -449,7 +449,7 @@ def ai_suggestion(id, number):
     ones are your new recommendations.
 
     Tone Guidelines:
-    - Passionate, insightful, and articulate.
+    - Passionate, insightful, and concise.
     - Use collector terminology naturally (e.g., "Alt Art," "Symmetry," "Visual Weight," "Focal Point," "Slab-worthy").
     - Be encouraging but honest—if a user's layout idea will look cluttered or visually disjointed on a specific grid size, gently explain 
     why and offer a cleaner alternative."""
