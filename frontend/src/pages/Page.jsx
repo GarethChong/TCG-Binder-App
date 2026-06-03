@@ -7,12 +7,16 @@ function Page() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [cards, setCards] = useState([])
+    const [images, setImages] = useState([])
     const navigate = useNavigate()
 
-    //states for card addition
+    //states for card and image addition
     const [slot, setSlot] = useState(null)
+    const [slotType, setSlotType] = useState(null)
     const [cardList, setCardList] = useState([])
     const [search, setSearch] = useState("")
+    const [image_url, setImage_url] = useState("")
+    const [width, setWidth] = useState(1)
 
     //states for card swapping
     const [fromSlot, setFromSlot] = useState(null)
@@ -29,6 +33,8 @@ function Page() {
     const [showModal, setShowModal] = useState(false)
     const [suggestions, setSuggestions] = useState("")
     const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+    const [userPrompt, setUserPrompt] = useState("")
+    const [style, setStyle] = useState('traditional')
 
     const { id, number } = useParams()
 
@@ -51,6 +57,7 @@ function Page() {
             const data = await response.json()
             setPage(data)
             setCards(data.cards)
+            setImages(data.images)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -101,12 +108,79 @@ function Page() {
             setCardList([])
             setSearch("")
             setCards([...cards, data])
+            setSlotType(null)
         } catch (err) {
             setError(err.message)
         }
     }
 
-    const swapCard = async () => {
+    const deleteCard = async (card) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                await handleError(response)
+            }
+
+            const data = await response.json()
+            setCards(cards.filter(c => c.id !== card.id)) //removing the deleted card
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    const addImage = async (image, width) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/image`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    image_url: image,
+                    slot_row: slot[0],
+                    slot_col: slot[1],
+                    width: width
+                })
+            })
+
+            if (!response.ok) {
+                await handleError(response)
+            }
+
+            const data = await response.json()
+            setSlot(null)
+            setImage_url("")
+            setSearch("")
+            setSlotType(null)
+            getPage()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    const deleteImage = async (image) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/image/${image.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            })
+
+            if (!response.ok) {
+                await handleError(response)
+            }
+
+            const data = await response.json()
+            //removing the deleted card
+            setImages(images.filter(i => i.id !== image.id && (i.slot_row !== image.slot_row || i.slot_col !== image.slot_col + 1)))
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    const swap = async () => {
         try {
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}`, {
                 method: 'PUT',
@@ -128,24 +202,6 @@ function Page() {
             setFromSlot(null)
             setToSlot(null)
             getPage()
-        } catch (err) {
-            setError(err.message)
-        }
-    }
-
-    const deleteCard = async (card) => {
-        try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            })
-
-            if (!response.ok) {
-                await handleError(response)
-            }
-
-            const data = await response.json()
-            setCards(cards.filter(c => c.id !== card.id)) //removing the deleted card
         } catch (err) {
             setError(err.message)
         }
@@ -178,8 +234,13 @@ function Page() {
             setShowModal(true)
             setLoadingSuggestions(true)
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/suggestions`, {
-                method: 'GET',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
+                body: JSON.stringify({
+                    user_prompt: userPrompt,
+                    style: style
+                })
             })
 
             if (!response.ok) {
@@ -192,9 +253,9 @@ function Page() {
             setError(err.message)
         } finally {
             setLoadingSuggestions(false)
+            setUserPrompt("")
         }
     }
-
 
     return loading
         ? <p>Loading...</p>
@@ -208,6 +269,7 @@ function Page() {
                     <div key={row}>
                         {Array.from({ length: page.size }, (_, i) => i).map(col => { //create columns within each row
                             const card = cards.find(c => c.slot_row === row && c.slot_col === col)
+                            const image = images.find(i => i.slot_row === row && i.slot_col === col)
                             return ( //span sits next to other elements, div starts a new line
                                 <span key={col} style={{ margin: '5px' }}>
                                     {card // checks if cards exist or if the slot is empty
@@ -227,7 +289,7 @@ function Page() {
                                                     ? <p>Loading Price...</p>
                                                     : <button onClick={() => getPrice(card)}>Check Price</button>
                                             }
-                                            <button onClick={() => deleteCard(card)}>delete card</button>
+                                            <button onClick={() => deleteCard(card)}>Delete Card</button>
                                             {mode === 'swap' && ( //only shows in swapmode 
                                                 <button onClick={() => {
                                                     if (!fromSlot) {
@@ -241,18 +303,37 @@ function Page() {
                                                 }}>Select</button>
                                             )}
                                         </div>
-                                        : mode === 'add' //if slot is empty, checks if it is in add or swap mode
-                                            ? <button onClick={() => setSlot([row, col])}>empty</button>
-                                            : <button onClick={() => {
-                                                if (!fromSlot) {
-                                                    setFromSlot([row, col])
-                                                } else if (!toSlot) {
-                                                    setToSlot([row, col])
-                                                } else {
-                                                    setFromSlot(toSlot)
-                                                    setToSlot([row, col])
-                                                }
-                                            }}>empty</button>
+                                        : image //if no card, check if there is image, otherwise is empty
+                                            ? image.is_primary //check if is primary image, else skip
+                                                ? <div>
+                                                    <img src={image.image_url} style={{ width: '50px' }} />
+                                                    <button onClick={() => deleteImage(image)}>Delete Image</button>
+                                                    {mode === 'swap' && ( //only shows in swapmode 
+                                                        <button onClick={() => {
+                                                            if (!fromSlot) {
+                                                                setFromSlot([row, col])
+                                                            } else if (!toSlot) {
+                                                                setToSlot([row, col])
+                                                            } else {
+                                                                setFromSlot(toSlot)
+                                                                setToSlot([row, col])
+                                                            }
+                                                        }}>Select</button>
+                                                    )}
+                                                </div>
+                                                : null
+                                            : mode === 'add' //if slot is empty, checks if it is in add or swap mode
+                                                ? <button onClick={() => setSlot([row, col])}>empty</button>
+                                                : <button onClick={() => {
+                                                    if (!fromSlot) {
+                                                        setFromSlot([row, col])
+                                                    } else if (!toSlot) {
+                                                        setToSlot([row, col])
+                                                    } else {
+                                                        setFromSlot(toSlot)
+                                                        setToSlot([row, col])
+                                                    }
+                                                }}>empty</button>
                                     }
                                 </span>
                             )
@@ -266,23 +347,43 @@ function Page() {
                     setSearch("")
                     setFromSlot(null)
                     setToSlot(null)
+                    setSlotType(null)
                 }}>Switch to {mode === 'add' ? 'Swap' : 'Add'} Mode</button>
                 {mode === 'add' && slot && (
                     <div>
-                        <input
-                            type="text"
-                            placeholder="Search card"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                        <button onClick={() => searchCard()}>Search</button>
-                        {cardList.map(card => (
-                            <div key={`${card.number}-${card.set}`}>
-                                <img src={card.image} alt={card.name} style={{ width: '50px' }} />
-                                <p>{card.name} — {card.set}</p>
-                                <button onClick={() => addCard(card)}>Add Card</button>
+                        {slotType === null
+                            ? <div>
+                                <button onClick={() => setSlotType('card')}>Add Card</button>
+                                <button onClick={() => setSlotType('image')}>Add Image</button>
                             </div>
-                        ))}
+                            : slotType == 'card'
+                                ? <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search card"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                    <button onClick={() => searchCard()}>Search</button>
+                                    {cardList.map(card => (
+                                        <div key={`${card.number}-${card.set}`}>
+                                            <img src={card.image} alt={card.name} style={{ width: '50px' }} />
+                                            <p>{card.name} — {card.set}</p>
+                                            <button onClick={() => addCard(card)}>Add Card</button>
+                                        </div>
+                                    ))}
+                                </div>
+                                : <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Set Image"
+                                        value={image_url}
+                                        onChange={(e) => setImage_url(e.target.value)}
+                                    />
+                                    <button onClick={() => setWidth(width === 1 ? 2 : 1)}>Width: {width}</button>
+                                    <button onClick={() => addImage(image_url, width)}>Search</button>
+                                </div>
+                        }
                     </div>
                 )}
                 {mode === 'swap' && (
@@ -290,11 +391,22 @@ function Page() {
                         <p>From slot: {fromSlot ? `row ${fromSlot[0]}, col ${fromSlot[1]}` : 'not selected'}</p>
                         <p>To slot: {toSlot ? `row ${toSlot[0]}, col ${toSlot[1]}` : 'not selected'}</p>
                         {fromSlot && toSlot && (
-                            <button onClick={() => swapCard()}>Swap</button>
+                            <button onClick={() => swap()}>Swap</button>
                         )}
                     </div>
                 )}
-                <button onClick={() => aiSuggestions()}>AI Suggestions</button>
+                <h3>AI Suggestion</h3>
+                <input
+                    type="text"
+                    placeholder="Good day, how may I be of assistance?"
+                    value={userPrompt}
+                    onChange={(e) => setUserPrompt(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') aiSuggestions() }}
+                />
+                <select value={style} onChange={(e) => setStyle(e.target.value)}> 
+                    <option value="traditional">Traditional</option> 
+                    <option value="michi">Michi Method</option>
+                </select>
                 {showModal && ( //modal for ai suggestions
                     <div style={{
                         position: 'fixed',

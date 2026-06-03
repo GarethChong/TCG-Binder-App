@@ -32,3 +32,13 @@ class Card(db.Model):
     slot_col = db.Column(db.Integer, nullable=False)
     slot_row = db.Column(db.Integer, nullable=False)
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
+
+#needed to allow for michi method of binder expression
+class DecorativeImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image_url = db.Column(db.String(500))
+    slot_col = db.Column(db.Integer, nullable=False)
+    slot_row = db.Column(db.Integer, nullable=False)
+    width = db.Column(db.Integer, default=1)
+    is_primary = db.Column(db.Boolean, default=True) #this is for lateral spanning images
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'))

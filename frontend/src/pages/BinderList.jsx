@@ -94,9 +94,7 @@ function BinderList() {
         : error
             ? <p>{error}</p>
             : <div>
-                <h1>
-                    Binder List
-                </h1>
+                <h1 className="text-3xl text-red-500">Binder List</h1>
                 {binders.map(binder => (
                     <div key={binder.id}>
                     <p onClick={() => navigate(`/binder/${binder.id}`)}>{binder.name}</p>
