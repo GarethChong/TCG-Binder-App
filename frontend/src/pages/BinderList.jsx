@@ -216,13 +216,14 @@ function BinderList() {
                                         placeholder="e.g. Charizard Holos"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
+                                        className="bg-white text-black border-blue-600 border-l-4"
                                     />
                                 </div>
 
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Pocket Size</label>
                                     <div style={styles.sizeRow}>
-                                        {[4, 9, 12].map(s => (
+                                        {[2, 3, 4].map(s => (
                                             <button
                                                 key={s}
                                                 onClick={() => setSize(s)}
@@ -232,7 +233,7 @@ function BinderList() {
                                                     color: size === s ? '#fff' : '#0052CC',
                                                 }}
                                             >
-                                                {s}-pocket
+                                                {s}-grid
                                             </button>
                                         ))}
                                     </div>

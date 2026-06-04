@@ -107,25 +107,26 @@ def binder_list():
     data = request.get_json()
     name = data.get('name')
     size = data.get('size')
+    colour = data.get('colour')
 
     #create a new binder and add it to the database
     if size < 2:
         return jsonify({'message': 'Size is too small!'}), 404
     
-    if size > 5:
+    if size > 4:
         return jsonify({'message': 'Size is too big!'}), 404
     
-    new_binder = Binder(name=name, size=size, user_id = current_user.id)
+    new_binder = Binder(name=name, size=size, colour=colour, user_id = current_user.id)
     db.session.add(new_binder)
     db.session.commit()
-    return jsonify({'id': new_binder.id, 'name': new_binder.name})
+    return jsonify({'id': new_binder.id, 'name': new_binder.name, 'colour': new_binder.colour})
 
 @routes.route('/binderlist', methods=['GET'])
 @login_required
 def get_binders():
     #open all binders and return them as a list of dictionaries
     binders = Binder.query.filter_by(user_id = current_user.id).all()
-    binder_list = [{'id': binder.id, 'name': binder.name} for binder in binders]
+    binder_list = [{'id': binder.id, 'name': binder.name, 'colour': binder.colour} for binder in binders]
     return jsonify(binder_list)
 
 @routes.route('/binder/<int:id>', methods = ['GET'])

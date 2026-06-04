@@ -14,6 +14,7 @@ class Binder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     size = db.Column(db.Integer)
+    colour = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     pages = db.relationship('Page', backref='binder', cascade='all, delete-orphan')
 
@@ -22,6 +23,7 @@ class Page(db.Model):
     page_number = db.Column(db.Integer)
     binder_id = db.Column(db.Integer, db.ForeignKey('binder.id'))
     cards = db.relationship('Card', backref='page', cascade='all, delete-orphan')
+    images = db.relationship('DecorativeImage', backref='page', cascade='all, delete-orphan')
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
