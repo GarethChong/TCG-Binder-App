@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -22,21 +23,28 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --radius: 0rem;
+
+  --background: oklch(0.98 0.004 264);
+  --foreground: oklch(0.09 0.02 264);
+
+  --primary: oklch(0.45 0.18 264);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.94 0.008 264);
+  --secondary-foreground: oklch(0.09 0.02 264);
+
+  --muted: oklch(0.94 0.008 264);
+  --muted-foreground: oklch(0.48 0.02 264);
+
+  --accent: oklch(0.94 0.008 264);
+  --accent-foreground: oklch(0.09 0.02 264);
+
+  --destructive: oklch(0.53 0.22 27);
+
+  --border: oklch(0.88 0.01 264);
+  --input: oklch(0.88 0.01 264);
+  --ring: oklch(0.45 0.18 264);
 }
 
 @layer base {
@@ -45,6 +53,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Exo 2', sans-serif;
   }
 }
-
