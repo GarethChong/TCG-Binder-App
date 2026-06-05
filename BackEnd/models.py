@@ -21,6 +21,7 @@ class Binder(db.Model):
 class Page(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     page_number = db.Column(db.Integer)
+    sheet = db.Column(db.Integer, nullable =False)
     binder_id = db.Column(db.Integer, db.ForeignKey('binder.id'))
     cards = db.relationship('Card', backref='page', cascade='all, delete-orphan')
     images = db.relationship('DecorativeImage', backref='page', cascade='all, delete-orphan')

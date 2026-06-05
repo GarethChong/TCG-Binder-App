@@ -102,7 +102,7 @@ def card_search():
 
 @routes.route('/binderlist', methods=['POST'])
 @login_required
-def binder_list():
+def create_binder():
     #request for a name for a new binder
     data = request.get_json()
     name = data.get('name')
@@ -164,7 +164,7 @@ def delete_binder(id):
 
 @routes.route('/binder/<int:id>', methods = ['POST'])
 @login_required
-def add_page(id):
+def add_sheet(id):
     binder = Binder.query.filter_by(id=id).first()
 
     if not binder:
@@ -178,10 +178,50 @@ def add_page(id):
     if len(pages) >= 30:
         return jsonify({'message': 'Binder full'}), 409
     
-    new_page = Page(page_number=len(pages) + 1, binder_id=binder.id)
-    db.session.add(new_page)
+    first_new_page = Page(page_number=len(pages) + 1, sheet=len(pages)/2 + 1, binder_id=binder.id)
+    second_new_page = Page(page_number=len(pages) + 2, sheet=len(pages)/2 + 1, binder_id=binder.id)
+    db.session.add(first_new_page)
+    db.session.add(second_new_page)
     db.session.commit()
-    return jsonify({'id': new_page.id, 'page_number': new_page.page_number})
+
+    new_sheet = Page.query.filter_by(sheet=len(pages)/2+1).all()
+    new_pages = [{'id': page.id, 'page_number': page.page_number, 'sheet': page.sheet} for page in new_sheet]
+    return jsonify(new_pages)
+
+@routes.route('/binder/<int:id>/page/<int:number>', methods = ['DELETE'])
+@login_required
+def delete_sheet(id, number):
+    binder = Binder.query.filter_by(id=id).first()
+    page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
+
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+    
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+
+    if not page:
+        return jsonify({'message': 'Page does not exist'}), 404 
+    
+    other_page = Page.query.filter_by(binder_id=id).filter_by(sheet=page.sheet).filter(Page.page_number != number).first()
+    
+    sheet_number = page.sheet
+
+    db.session.delete(page)
+    db.session.delete(other_page)
+    db.session.commit()
+
+    #filter_by only filters equal; lower all remaining pages by 1 
+    larger_pages = Page.query.filter_by(binder_id=id).filter(Page.page_number > number).all()
+    for page in larger_pages:
+        page.page_number -= 2
+    larger_sheets = Page.query.filter_by(binder_id=id).filter(Page.sheet > sheet_number).all()
+    for sheet in larger_sheets:
+        sheet.sheet -= 1
+    db.session.commit()
+
+    return jsonify({'message': 'Sheet successfully deleted'})
+
 
 @routes.route('/binder/<int:id>/page/<int:number>', methods = ['GET'])
 @login_required
@@ -207,10 +247,11 @@ def view_page(id, number):
 
     return jsonify({'page_number': page.page_number, 'size': binder.size, 'cards': cards, 'images': images})
 
-@routes.route('/binder/<int:id>/page/<int:number>', methods = ['DELETE'])
+@routes.route('/binder/<int:id>/page/<int:number>/clear', methods = ['PUT'])
 @login_required
-def delete_page(id, number):
+def clear_page(id, number):
     binder = Binder.query.filter_by(id=id).first()
+    #find the page from binder_id and page number
     page = Page.query.filter_by(binder_id=id).filter_by(page_number=number).first()
 
     if not binder:
@@ -222,16 +263,17 @@ def delete_page(id, number):
     if not page:
         return jsonify({'message': 'Page does not exist'}), 404 
     
-    db.session.delete(page)
+    #get necessary card details to be shown to user
+    cards = Card.query.filter_by(page_id=page.id).all()
+    images = DecorativeImage.query.filter_by(page_id=page.id).all()
+
+    for card in cards:
+        db.session.delete(card)
+    for image in images:
+        db.session.delete(image)
     db.session.commit()
 
-    #filter_by only filters equal; lower all remaining pages by 1 
-    larger_pages = Page.query.filter_by(binder_id=id).filter(Page.page_number > number).all()
-    for page in larger_pages:
-        page.page_number -= 1
-    db.session.commit()
-
-    return jsonify({'message': 'Page successfully deleted'})
+    return jsonify({'message': 'Page has been successfully cleared'})
 
 @routes.route('/binder/<int:id>/page/<int:number>', methods = ['POST'])
 @login_required
