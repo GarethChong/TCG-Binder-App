@@ -143,7 +143,11 @@ def view_binder(id):
         return jsonify({'message': 'You have no access to this binder'}), 403
     
     pages = Page.query.filter_by(binder_id = binder.id).all()
-    page_list = [{'id': page.id, 'page_number': page.page_number} for page in pages]
+    page_list = [{'id': page.id, 'page_number': page.page_number, 
+                  'cards': [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url} 
+                for card in Card.query.filter_by(page_id=page.id).all()],
+                  'images': [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
+                for image in DecorativeImage.query.filter_by(page_id=page.id).all()]} for page in pages]
 
     return jsonify({'id': binder.id, 'name': binder.name, 'pages': page_list})
 
@@ -239,7 +243,7 @@ def view_page(id, number):
     if not page:
         return jsonify({'message': 'Page does not exist'}), 404 
     
-    #get necessary card details to be shown to user
+    #get necessary card and image details to be shown to user
     cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url} 
              for card in Card.query.filter_by(page_id=page.id).all()]
     images = [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
