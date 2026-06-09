@@ -14,16 +14,16 @@ import { Input } from '../components/ui/input'
 
 //colours for the binders
 const PRESET_COLOURS = [
-    { name: 'Crimson',  value: '#C0392B' },
-    { name: 'Blue',     value: '#0052CC' },
-    { name: 'Forest',   value: '#1E8449' },
-    { name: 'Purple',   value: '#6C3483' },
-    { name: 'Orange',   value: '#D35400' },
-    { name: 'Teal',     value: '#117A65' },
-    { name: 'Pink',     value: '#C0527A' },
-    { name: 'Onyx',     value: '#1A1A2E' },
-    { name: 'Gold',     value: '#B7950B' },
-    { name: 'Steel',    value: '#5D6D7E' },
+    { name: 'Crimson', value: '#C0392B' },
+    { name: 'Blue', value: '#0052CC' },
+    { name: 'Forest', value: '#1E8449' },
+    { name: 'Purple', value: '#6C3483' },
+    { name: 'Orange', value: '#D35400' },
+    { name: 'Teal', value: '#117A65' },
+    { name: 'Pink', value: '#C0527A' },
+    { name: 'Onyx', value: '#1A1A2E' },
+    { name: 'Gold', value: '#B7950B' },
+    { name: 'Steel', value: '#5D6D7E' },
 ]
 
 function BinderList() {
@@ -35,6 +35,7 @@ function BinderList() {
     const [colour, setColour] = useState(PRESET_COLOURS[0].value)
     const [selectedId, setSelectedId] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [hoveredId, setHoveredId] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -135,8 +136,8 @@ function BinderList() {
                 </div>
                 <button onClick={logout} style={styles.logoutBtn} title="Logout">
                     {/* Arrow pointing left = exit */}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" 
-                    strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                        strokeLinejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                         <polyline points="16 17 21 12 16 7" />
                         <line x1="21" y1="12" x2="9" y2="12" />
@@ -164,6 +165,8 @@ function BinderList() {
                             <div
                                 key={binder.id}
                                 onClick={() => handleBinderClick(binder)}
+                                onMouseEnter={() => setHoveredId(binder.id)}
+                                onMouseLeave={() => setHoveredId(null)}
                                 style={{
                                     ...styles.binder,
                                     background: `linear-gradient(135deg, ${binder.colour || '#0052CC'}, ${binder.colour || '#0052CC'}99)`,
@@ -186,7 +189,10 @@ function BinderList() {
                                 {/* Delete button */}
                                 <button
                                     onClick={(e) => deleteBinder(e, binder)}
-                                    style={styles.deleteBtn}
+                                    style={{
+                                        ...styles.deleteBtn,
+                                        opacity: hoveredId === binder.id ? 1 : 0
+                                    }}
                                     title="Delete binder"
                                 >
                                     ×
@@ -233,7 +239,7 @@ function BinderList() {
                                                     color: size === s ? '#fff' : '#0052CC',
                                                 }}
                                             >
-                                                {s}-grid
+                                                {s}-pocket
                                             </button>
                                         ))}
                                     </div>
