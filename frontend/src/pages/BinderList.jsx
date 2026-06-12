@@ -100,7 +100,7 @@ function BinderList() {
         setSelectedId(binder.id)
         setTimeout(() => {
             navigate(`/binder/${binder.id}`)
-        }, 600) //waits 6 secons for animation to finish
+        }, 600) //waits 6 seconds for animation to finish
     }
 
     const logout = async () => {
@@ -400,8 +400,8 @@ const styles = {
         minHeight: '220px',
     },
     binder: {
-        width: '60px',
-        height: '200px',
+        width: '9vw',
+        height: '27vw',
         borderRadius: '3px 6px 6px 3px',
         cursor: 'pointer',
         position: 'relative',
@@ -456,8 +456,8 @@ const styles = {
         padding: 0,
     },
     emptySlot: {
-        width: '60px',
-        height: '200px',
+        width: '9vw',
+        height: '27vw',
         border: '1px dashed rgba(255,255,255,0.15)',
         borderRadius: '3px 6px 6px 3px',
         cursor: 'pointer',
@@ -474,14 +474,14 @@ const styles = {
         lineHeight: 1,
     },
     emptySlotDead: {
-        width: '60px',
-        height: '200px',
+        width: '9vw',
+        height: '27vw',
         border: '1px dashed rgba(255,255,255,0.06)',
         borderRadius: '3px 6px 6px 3px',
         flexShrink: 0,
     },
     shelf: {
-        height: '18px',
+        height: '1.5vw',
         background: 'linear-gradient(180deg, #2A2D3E 0%, #1A1D2E 100%)',
         borderRadius: '2px',
         marginTop: '2px',

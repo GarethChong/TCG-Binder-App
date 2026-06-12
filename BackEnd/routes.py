@@ -249,7 +249,7 @@ def view_page(id, number):
     images = [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
              for image in DecorativeImage.query.filter_by(page_id=page.id).all()]
 
-    return jsonify({'page_number': page.page_number, 'size': binder.size, 'cards': cards, 'images': images})
+    return jsonify({'binder_name': binder.name, 'page_number': page.page_number, 'size': binder.size, 'cards': cards, 'images': images})
 
 @routes.route('/binder/<int:id>/page/<int:number>/clear', methods = ['PUT'])
 @login_required

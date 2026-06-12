@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { handleError } from '../utils'
-import { Button } from '../components/ui/button'
 
 function Binder() {
     const [binder, setBinder] = useState(null)
@@ -11,6 +10,7 @@ function Binder() {
     const [folios, setFolios] = useState([])
     const [folioIndex, setFolioIndex] = useState(0)
     const [hoveredButton, setHoveredButton] = useState(null)
+    const [selectedPage, setSelectedPage] = useState(null)
     const navigate = useNavigate()
 
     // get the binder id
@@ -116,6 +116,15 @@ function Binder() {
         return Object.values(groups)
     }
 
+    const handlePageClick = (page) => {
+        //prevent trigger if already animating
+        if (selectedPage !== null) return
+        setSelectedPage(page.page_number)
+        setTimeout(() => {
+            navigate(`/binder/${binder.id}/page/${page.page_number}`)
+        }, 600) //waits 6 seconds for animation to finish
+    }
+
     if (loading) return (
         <div style={styles.loadingRoot}>
             <p style={styles.loadingText}>Loading collection...</p>
@@ -174,6 +183,9 @@ function Binder() {
             ? currentFolio[0]
             : null
 
+    const isLeftSelected = selectedPage === leftPage?.page_number
+    const isRightSelected = selectedPage === rightPage?.page_number
+
     return (
         <div style={styles.root}>
 
@@ -216,7 +228,12 @@ function Binder() {
                     {leftPage
                         ? (
                             <div>
-                                <div style={styles.page}>
+                                <div style={{
+                                    ...styles.page,
+                                    transform: isLeftSelected ? 'translateY(0) scale(1.2)' : 'translateY(0) scale(1)',
+                                    opacity: isLeftSelected ? 0 : 1,
+                                    transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
+                                }}>
                                     <div style={{ ...styles.binderStrip, background: binder.colour }} />
 
                                     {/* grid */}
@@ -247,7 +264,7 @@ function Binder() {
                                     <button
                                         onMouseEnter={() => setHoveredButton('left-nav')}
                                         onMouseLeave={() => setHoveredButton(null)}
-                                        onClick={() => navigate(`/binder/${binder.id}/page/${leftPage.page_number}`)}
+                                        onClick={() => handlePageClick(leftPage)}
                                         style={{
                                             ...styles.footerButton,
                                             color: 'rgba(235,235,220,0.8)',
@@ -296,7 +313,12 @@ function Binder() {
                         {rightPage
                             ? (
                                 <div>
-                                    <div style={styles.page}>
+                                    <div style={{
+                                        ...styles.page,
+                                        transform: isRightSelected ? 'translateY(0) scale(1.2)' : 'translateY(0) scale(1)',
+                                        opacity: isRightSelected ? 0 : 1,
+                                        transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
+                                    }}>
                                         <div style={{ ...styles.binderStrip, background: binder.colour }} />  {/* strip first */}
 
                                         {/* grid */}
@@ -326,7 +348,7 @@ function Binder() {
                                         <button
                                             onMouseEnter={() => setHoveredButton('right-nav')}
                                             onMouseLeave={() => setHoveredButton(null)}
-                                            onClick={() => navigate(`/binder/${binder.id}/page/${rightPage.page_number}`)}
+                                            onClick={() => handlePageClick(rightPage)}
                                             style={{
                                                 ...styles.footerButton,
                                                 color: 'rgba(235,235,220,0.8)',
@@ -470,31 +492,6 @@ const styles = {
         clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))',
         transition: 'color 0.2s, border-color 0.2s',
     },
-    titleArea: {
-        padding: '40px 32px 0',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        paddingBottom: '40px',
-    },
-    title: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '48px',
-        fontWeight: '700',
-        letterSpacing: '0.04em',
-        textTransform: 'uppercase',
-        color: '#fff',
-        lineHeight: 1,
-    },
-    subtitle: {
-        fontFamily: "'Exo 2', sans-serif",
-        fontSize: '13px',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.35)',
-        marginTop: '6px',
-    },
     binderName: {
         writingMode: 'vertical-rl',
         textOrientation: 'mixed',
@@ -510,26 +507,6 @@ const styles = {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         userSelect: 'none',
-    },
-    deleteBtn: {
-        position: 'absolute',
-        top: '4px',
-        right: '4px',
-        width: '16px',
-        height: '16px',
-        background: 'rgba(0,0,0,0.4)',
-        border: 'none',
-        borderRadius: '50%',
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: '14px',
-        lineHeight: '14px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity: 0,
-        transition: 'opacity 0.2s',
-        padding: 0,
     },
     outerBookBar: {
         display: 'flex',
