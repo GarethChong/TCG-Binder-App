@@ -9,33 +9,19 @@ import {
     DialogTrigger,
     DialogFooter,
 } from '../components/ui/dialog'
-import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-
-//colours for the binders
-const PRESET_COLOURS = [
-    { name: 'Crimson', value: '#C0392B' },
-    { name: 'Blue', value: '#0052CC' },
-    { name: 'Forest', value: '#1E8449' },
-    { name: 'Purple', value: '#6C3483' },
-    { name: 'Orange', value: '#D35400' },
-    { name: 'Teal', value: '#117A65' },
-    { name: 'Pink', value: '#C0527A' },
-    { name: 'Onyx', value: '#1A1A2E' },
-    { name: 'Gold', value: '#B7950B' },
-    { name: 'Steel', value: '#5D6D7E' },
-]
 
 function BinderList() {
     const [binders, setBinders] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [name, setName] = useState('')
-    const [size, setSize] = useState(9)
+    const [size, setSize] = useState(3)
     const [colour, setColour] = useState(PRESET_COLOURS[0].value)
     const [selectedId, setSelectedId] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [hoveredId, setHoveredId] = useState(null)
+    const [hoveredButton, setHoveredButton] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -71,7 +57,7 @@ function BinderList() {
             setBinders([...binders, data])
             //reset form
             setName('')
-            setSize(9)
+            setSize(3)
             setColour(PRESET_COLOURS[0].value)
             setDialogOpen(false)
         } catch (err) {
@@ -132,17 +118,17 @@ function BinderList() {
             {/* Top bar */}
             <div style={styles.topBar}>
                 <div style={styles.brand}>
-                    TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
+                    TCG<span style={{ color: 'var(--danger)' }}>■</span>BINDER
                 </div>
-                <button onClick={logout} style={styles.logoutBtn} title="Logout">
+                <button onClick={logout} style={styles.logoutButton} title="Logout">
                     {/* Arrow pointing left = exit */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
-                        strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
+                        strokeLinejoin="round"> {/* drawing area is 24 by 24 */}
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /> {/* forms the box / bracket shape */}
+                        <polyline points="16 17 21 12 16 7" /> {/* forms the arrow head  */}
+                        <line x1="21" y1="12" x2="9" y2="12" /> {/* forms the arrow line */}
                     </svg>
-                    <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Exit</span>
+                    <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Logout</span>
                 </button>
             </div>
 
@@ -169,7 +155,7 @@ function BinderList() {
                                 onMouseLeave={() => setHoveredId(null)}
                                 style={{
                                     ...styles.binder,
-                                    background: `linear-gradient(135deg, ${binder.colour || '#0052CC'}, ${binder.colour || '#0052CC'}99)`,
+                                    background: `linear-gradient(135deg, ${binder.colour || 'var(--border)'}, ${binder.colour || 'var(--border)'}99)`,
                                     transform: isSelected ? 'translateY(-120%) scale(1.08)' : 'translateY(0) scale(1)',
                                     opacity: isSelected ? 0 : 1,
                                     transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
@@ -190,7 +176,7 @@ function BinderList() {
                                 <button
                                     onClick={(e) => deleteBinder(e, binder)}
                                     style={{
-                                        ...styles.deleteBtn,
+                                        ...styles.deleteButton,
                                         opacity: hoveredId === binder.id ? 1 : 0
                                     }}
                                     title="Delete binder"
@@ -205,10 +191,19 @@ function BinderList() {
                     {binders.length < 10 && (
                         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                             <DialogTrigger asChild>
-                                <div style={styles.emptySlot}>
+                                <div
+                                    onMouseEnter={() => setHoveredButton('add-binder')}
+                                    onMouseLeave={() => setHoveredButton(null)}
+                                    disabled={!name.trim()}
+                                    style={{
+                                        ...styles.emptySlot,
+                                        boxShadow: hoveredButton === 'add-binder' ? '0 0 8px rgba(255,255,255,0.6)' : 'none',
+                                    }}
+                                >
                                     <span style={styles.plusIcon}>+</span>
                                 </div>
                             </DialogTrigger>
+
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle style={styles.dialogTitle}>
@@ -222,7 +217,6 @@ function BinderList() {
                                         placeholder="e.g. Charizard Holos"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="bg-white text-black border-blue-600 border-l-4"
                                     />
                                 </div>
 
@@ -234,9 +228,9 @@ function BinderList() {
                                                 key={s}
                                                 onClick={() => setSize(s)}
                                                 style={{
-                                                    ...styles.sizeBtn,
-                                                    background: size === s ? '#0052CC' : 'transparent',
-                                                    color: size === s ? '#fff' : '#0052CC',
+                                                    ...styles.sizeButton,
+                                                    background: size === s ? 'var(--border)' : 'var(--background)',
+                                                    color: size === s ? '#fff' : 'var(--border)',
                                                 }}
                                             >
                                                 {s}-pocket
@@ -248,39 +242,42 @@ function BinderList() {
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Colour</label>
                                     <div style={styles.colourRow}>
-                                        {PRESET_COLOURS.map(c => (
+                                        {PRESET_COLOURS.map(preset => (
                                             <button
-                                                key={c.value}
-                                                title={c.name}
-                                                onClick={() => setColour(c.value)}
+                                                key={preset.value}
+                                                title={preset.name}
+                                                onClick={() => setColour(preset.value)}
                                                 style={{
-                                                    ...styles.colourBtn,
-                                                    background: c.value,
-                                                    outline: colour === c.value
+                                                    ...styles.colourButton,
+                                                    background: preset.value,
+                                                    outline: colour === preset.value
                                                         ? '3px solid #fff'
                                                         : '3px solid transparent',
-                                                    boxShadow: colour === c.value
-                                                        ? `0 0 0 5px ${c.value}66`
+                                                    boxShadow: colour === preset.value
+                                                        ? `0 0 0 5px ${preset.value}66`
                                                         : 'none',
                                                 }}
+
                                             />
                                         ))}
                                     </div>
                                 </div>
 
                                 <DialogFooter>
-                                    <Button
+                                    <button
+                                        onMouseEnter={() => setHoveredButton('create-binder')}
+                                        onMouseLeave={() => setHoveredButton(null)}
                                         onClick={createBinder}
                                         disabled={!name.trim()}
                                         style={{
-                                            fontFamily: "'Rajdhani', sans-serif",
-                                            fontWeight: '700',
-                                            letterSpacing: '0.1em',
-                                            textTransform: 'uppercase',
+                                            ...styles.createButton,
+                                            color: 'var(--primary-text)',
+                                            border: `1px solid ${hoveredButton === 'create-binder' ? 'var(--border)' : 'rgba(255,255,255,0.15)'}`,
+                                            boxShadow: hoveredButton === 'create-binder' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
                                         Create Binder
-                                    </Button>
+                                    </button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
@@ -307,10 +304,24 @@ function BinderList() {
     )
 }
 
+//colours for the binders
+const PRESET_COLOURS = [
+    { name: 'Crimson', value: '#C0392B' },
+    { name: 'Blue', value: '#0052CC' },
+    { name: 'Forest', value: '#1E8449' },
+    { name: 'Purple', value: '#6C3483' },
+    { name: 'Orange', value: '#D35400' },
+    { name: 'Teal', value: '#117A65' },
+    { name: 'Pink', value: '#C0527A' },
+    { name: 'Onyx', value: '#1A1A2E' },
+    { name: 'Gold', value: '#B7950B' },
+    { name: 'Steel', value: '#5D6D7E' },
+]
+
 const styles = {
     root: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
@@ -318,7 +329,7 @@ const styles = {
     },
     loadingRoot: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -328,13 +339,13 @@ const styles = {
         fontSize: '18px',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.4)',
+        color: 'var(--loading-text)',
     },
     errorText: {
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '18px',
         letterSpacing: '0.1em',
-        color: '#E8001D',
+        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex',
@@ -351,13 +362,13 @@ const styles = {
         textTransform: 'uppercase',
         color: '#fff',
     },
-    logoutBtn: {
+    logoutButton: {
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
         background: 'transparent',
         border: '1px solid rgba(255,255,255,0.15)',
-        color: 'rgba(255,255,255,0.6)',
+        color: 'var(--muted-text)',
         padding: '6px 12px',
         cursor: 'pointer',
         fontFamily: "'Exo 2', sans-serif",
@@ -386,7 +397,7 @@ const styles = {
         fontSize: '13px',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.35)',
+        color: 'var(--loading-text)',
         marginTop: '6px',
     },
     shelfArea: {
@@ -435,7 +446,7 @@ const styles = {
         whiteSpace: 'nowrap',
         userSelect: 'none',
     },
-    deleteBtn: {
+    deleteButton: {
         position: 'absolute',
         top: '4px',
         right: '4px',
@@ -521,10 +532,10 @@ const styles = {
         display: 'flex',
         gap: '8px',
     },
-    sizeBtn: {
+    sizeButton: {
         flex: 1,
         padding: '7px',
-        border: '1px solid #0052CC',
+        border: '1px solid var(--border)',
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '13px',
         fontWeight: '700',
@@ -539,7 +550,7 @@ const styles = {
         gap: '8px',
         flexWrap: 'wrap',
     },
-    colourBtn: {
+    colourButton: {
         width: '28px',
         height: '28px',
         borderRadius: '50%',
@@ -547,6 +558,19 @@ const styles = {
         cursor: 'pointer',
         transition: 'box-shadow 0.15s, outline 0.15s',
     },
+    createButton: {
+        flex: 1,
+        padding: '7px',
+        border: '1px solid var(--border)',
+        fontFamily: "'Rajdhani', sans-serif",
+        fontSize: '13px',
+        fontWeight: '700',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        cursor: 'pointer',
+        clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+        background: 'transparent'
+    }
 }
 
 export default BinderList

@@ -23,28 +23,19 @@
 }
 
 :root {
-  --radius: 0rem;
+--background: #0A0A14;
+--grid: #12121f;
 
-  --background: oklch(0.98 0.004 264);
-  --foreground: oklch(0.09 0.02 264);
+--foreground: rgba(235,235,220,0.8);
+--muted-foreground: rgba(255,255,255,0.6);
+--loading-text: rgba(255,255,255,0.4);
 
-  --primary: oklch(0.45 0.18 264);
-  --primary-foreground: oklch(1 0 0);
+--border: #0052CC;
+--caution: #d9c91f;
+--danger: #E8001D;
 
-  --secondary: oklch(0.94 0.008 264);
-  --secondary-foreground: oklch(0.09 0.02 264);
-
-  --muted: oklch(0.94 0.008 264);
-  --muted-foreground: oklch(0.48 0.02 264);
-
-  --accent: oklch(0.94 0.008 264);
-  --accent-foreground: oklch(0.09 0.02 264);
-
-  --destructive: oklch(0.53 0.22 27);
-
-  --border: oklch(0.88 0.01 264);
-  --input: oklch(0.88 0.01 264);
-  --ring: oklch(0.45 0.18 264);
+--popover: #0A0A14;
+--popover-foreground: rgba(235,235,220,0.8);
 }
 
 @layer base {

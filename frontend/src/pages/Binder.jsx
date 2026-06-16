@@ -148,7 +148,7 @@ function Binder() {
                     TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
                 </div>
-                <button onClick={() => navigate('/binderlist')} style={styles.binderListButton} title="binderlist">
+                <button onClick={() => navigate('/binderlist')} style={styles.collectionButton} title="binderlist">
                     {/* Arrow pointing back to binderlist */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round">
@@ -195,7 +195,7 @@ function Binder() {
                     TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
                 </div>
-                <button onClick={() => navigate('/binderlist')} style={styles.binderListButton} title="binderlist">
+                <button onClick={() => navigate('/binderlist')} style={styles.collectionButton} title="binderlist">
                     {/* Arrow pointing back to binderlist */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round">
@@ -479,7 +479,7 @@ const styles = {
         textTransform: 'uppercase',
         color: '#fff',
     },
-    binderListButton: {
+    collectionButton: {
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
