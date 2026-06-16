@@ -20,8 +20,8 @@ function BinderList() {
     const [colour, setColour] = useState(PRESET_COLOURS[0].value)
     const [selectedId, setSelectedId] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
-    const [hoveredId, setHoveredId] = useState(null)
     const [hoveredButton, setHoveredButton] = useState(null)
+    const [hoveredId, setHoveredId] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -120,7 +120,16 @@ function BinderList() {
                 <div style={styles.brand}>
                     TCG<span style={{ color: 'var(--danger)' }}>■</span>BINDER
                 </div>
-                <button onClick={logout} style={styles.logoutButton} title="Logout">
+                <button
+                    onMouseEnter={() => setHoveredButton('logout')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    onClick={() => logout}
+                    style={{
+                        ...styles.logoutButton,
+                        border: `1px solid ${hoveredButton === 'logout' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
+                    }}
+                    title="logout"
+                >
                     {/* Arrow pointing left = exit */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round"> {/* drawing area is 24 by 24 */}
@@ -128,7 +137,8 @@ function BinderList() {
                         <polyline points="16 17 21 12 16 7" /> {/* forms the arrow head  */}
                         <line x1="21" y1="12" x2="9" y2="12" /> {/* forms the arrow line */}
                     </svg>
-                    <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Logout</span>
+                    <span
+                        style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Logout</span>
                 </button>
             </div>
 
@@ -150,9 +160,9 @@ function BinderList() {
                         return (
                             <div
                                 key={binder.id}
-                                onClick={() => handleBinderClick(binder)}
                                 onMouseEnter={() => setHoveredId(binder.id)}
                                 onMouseLeave={() => setHoveredId(null)}
+                                onClick={() => handleBinderClick(binder)}
                                 style={{
                                     ...styles.binder,
                                     background: `linear-gradient(135deg, ${binder.colour || 'var(--border)'}, ${binder.colour || 'var(--border)'}99)`,
@@ -174,10 +184,13 @@ function BinderList() {
 
                                 {/* Delete button */}
                                 <button
+                                    onMouseEnter={() => setHoveredButton('delete-binder')}
+                                    onMouseLeave={() => setHoveredButton(null)}
                                     onClick={(e) => deleteBinder(e, binder)}
                                     style={{
                                         ...styles.deleteButton,
-                                        opacity: hoveredId === binder.id ? 1 : 0
+                                        opacity: hoveredId === binder.id ? 1 : 0,
+                                        textShadow: hoveredButton === 'delete-binder' ? '0 0 8px rgba(255, 255, 255, 0.9)' : 'none',
                                     }}
                                     title="Delete binder"
                                 >
@@ -367,13 +380,11 @@ const styles = {
         alignItems: 'center',
         gap: '6px',
         background: 'transparent',
-        border: '1px solid rgba(255,255,255,0.15)',
         color: 'var(--muted-text)',
         padding: '6px 12px',
         cursor: 'pointer',
         fontFamily: "'Exo 2', sans-serif",
         clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))',
-        transition: 'color 0.2s, border-color 0.2s',
     },
     titleArea: {
         padding: '40px 32px 0',
@@ -463,7 +474,6 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         opacity: 0,
-        transition: 'opacity 0.2s',
         padding: 0,
     },
     emptySlot: {
@@ -476,7 +486,6 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        transition: 'border-color 0.2s',
     },
     plusIcon: {
         fontSize: '24px',

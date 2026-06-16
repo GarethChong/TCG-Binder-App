@@ -326,7 +326,16 @@ function Page() {
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binderName}</span>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>Page {page.page_number}</span>
                 </div>
-                <button onClick={() => navigate(`/binder/${id}`)} style={styles.backButton} title="binder">
+                <button
+                    onMouseEnter={() => setHoveredButton('collection')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    onClick={() => navigate(`/binder/${id}`)}
+                    style={{
+                        ...styles.backButton,
+                        border: `1px solid ${hoveredButton === 'collection' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
+                    }}
+                    title="binder"
+                >
                     {/* Arrow pointing back to binder */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round">

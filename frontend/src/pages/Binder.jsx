@@ -145,10 +145,19 @@ function Binder() {
             {/* Top bar */}
             <div style={styles.topBar}>
                 <div style={styles.brand}>
-                    TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
+                    TCG<span style={{ color: 'var(--danger)' }}>■</span>BINDER
+                    <span style={{ color: 'var(--loading-text)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
                 </div>
-                <button onClick={() => navigate('/binderlist')} style={styles.collectionButton} title="binderlist">
+                <button
+                    onMouseEnter={() => setHoveredButton('collection')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    onClick={() => navigate('/binderlist')}
+                    style={{
+                        ...styles.collectionButton,
+                        border: `1px solid ${hoveredButton === 'collection' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
+                    }}
+                    title="binderlist"
+                >
                     {/* Arrow pointing back to binderlist */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round">
@@ -192,10 +201,19 @@ function Binder() {
             {/* Top bar */}
             <div style={styles.topBar}>
                 <div style={styles.brand}>
-                    TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
+                    TCG<span style={{ color: 'var(--danger)' }}>■</span>BINDER
+                    <span style={{ color: 'var(--loading-text)', fontSize: '15px', marginLeft: '8px' }}>— {binder.name}</span>
                 </div>
-                <button onClick={() => navigate('/binderlist')} style={styles.collectionButton} title="binderlist">
+                <button
+                    onMouseEnter={() => setHoveredButton('collection')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    onClick={() => navigate('/binderlist')}
+                    style={{
+                        ...styles.collectionButton,
+                        border: `1px solid ${hoveredButton === 'collection' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
+                    }}
+                    title="binderlist"
+                >
                     {/* Arrow pointing back to binderlist */}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
                         strokeLinejoin="round">
@@ -233,8 +251,10 @@ function Binder() {
                                     transform: isLeftSelected ? 'translateY(0) scale(1.2)' : 'translateY(0) scale(1)',
                                     opacity: isLeftSelected ? 0 : 1,
                                     transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
+                                    borderTop: `5px solid ${binder.colour}`,
+                                    borderLeft: `5px solid ${binder.colour}`,
+                                    borderBottom: `5px solid ${binder.colour}`
                                 }}>
-                                    <div style={{ ...styles.binderStrip, background: binder.colour }} />
 
                                     {/* grid */}
                                     {Array.from({ length: binder.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
@@ -267,8 +287,8 @@ function Binder() {
                                         onClick={() => handlePageClick(leftPage)}
                                         style={{
                                             ...styles.footerButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'left-nav' ? '#0052CC' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'left-nav' ? 'var(--border)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'left-nav' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -280,8 +300,8 @@ function Binder() {
                                         onClick={() => clearPage(leftPage)}
                                         style={{
                                             ...styles.footerButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'left-clear' ? '#d9c91f' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'left-clear' ? 'var(--caution)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'left-clear' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -293,8 +313,8 @@ function Binder() {
                                         onClick={() => deleteSheet(leftPage)}
                                         style={{
                                             ...styles.footerButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'left-delete' ? '#E8001D' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'left-delete' ? 'var(--danger)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'left-delete' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -318,8 +338,10 @@ function Binder() {
                                         transform: isRightSelected ? 'translateY(0) scale(1.2)' : 'translateY(0) scale(1)',
                                         opacity: isRightSelected ? 0 : 1,
                                         transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
+                                        borderTop: `5px solid ${binder.colour}`,
+                                        borderRight: `5px solid ${binder.colour}`,
+                                        borderBottom: `5px solid ${binder.colour}`
                                     }}>
-                                        <div style={{ ...styles.binderStrip, background: binder.colour }} />  {/* strip first */}
 
                                         {/* grid */}
                                         {Array.from({ length: binder.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
@@ -351,8 +373,8 @@ function Binder() {
                                             onClick={() => handlePageClick(rightPage)}
                                             style={{
                                                 ...styles.footerButton,
-                                                color: 'rgba(235,235,220,0.8)',
-                                                border: `1px solid ${hoveredButton === 'right-nav' ? '#0052CC' : 'rgba(0,82,204,0.4)'}`,
+                                                color: 'var(--foreground)',
+                                                border: `1px solid ${hoveredButton === 'right-nav' ? 'var(--border)' : 'rgba(0,82,204,0.4)'}`,
                                                 boxShadow: hoveredButton === 'right-nav' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                             }}
                                         >
@@ -364,8 +386,8 @@ function Binder() {
                                             onClick={() => clearPage(rightPage)}
                                             style={{
                                                 ...styles.footerButton,
-                                                color: 'rgba(235,235,220,0.8)',
-                                                border: `1px solid ${hoveredButton === 'right-clear' ? '#d9c91f' : 'rgba(0,82,204,0.4)'}`,
+                                                color: 'var(--foreground)',
+                                                border: `1px solid ${hoveredButton === 'right-clear' ? 'var(--caution)' : 'rgba(0,82,204,0.4)'}`,
                                                 boxShadow: hoveredButton === 'right-clear' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                             }}
                                         >
@@ -377,8 +399,8 @@ function Binder() {
                                             onClick={() => deleteSheet(rightPage)}
                                             style={{
                                                 ...styles.footerButton,
-                                                color: 'rgba(235,235,220,0.8)',
-                                                border: `1px solid ${hoveredButton === 'right-delete' ? '#E8001D' : 'rgba(0,82,204,0.4)'}`,
+                                                color: 'var(--foreground)',
+                                                border: `1px solid ${hoveredButton === 'right-delete' ? 'var(--danger)' : 'rgba(0,82,204,0.4)'}`,
                                                 boxShadow: hoveredButton === 'right-delete' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                             }}
                                         >
@@ -438,7 +460,7 @@ function Binder() {
 const styles = {
     root: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
@@ -446,7 +468,7 @@ const styles = {
     },
     loadingRoot: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -456,13 +478,13 @@ const styles = {
         fontSize: '18px',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.4)',
+        color: 'var(--loading-text)',
     },
     errorText: {
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '18px',
         letterSpacing: '0.1em',
-        color: '#E8001D',
+        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex', //keeps things horizontally
@@ -484,8 +506,7 @@ const styles = {
         alignItems: 'center',
         gap: '6px',
         background: 'transparent',
-        border: '1px solid rgba(255,255,255,0.15)',
-        color: 'rgba(255,255,255,0.6)',
+        color: 'var(--muted)',
         padding: '6px 12px',
         cursor: 'pointer',
         fontFamily: "'Exo 2', sans-serif",
@@ -516,7 +537,7 @@ const styles = {
         flex: 1, //allows to take up remaining vertical space between top bar and folio indicator
     },
     page: {
-        background: '#12121f',
+        background: 'var(--grid)',
         border: '1px solid rgba(0,82,204,0.25)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
         padding: '7px',
@@ -542,7 +563,7 @@ const styles = {
         fontFamily: 'Rajdhani',
         fontSize: '11px',
         padding: '4px 8px',
-        border: '1px solid #0052CC',
+        border: '1px solid var(--border)',
         background: 'transparent',
         cursor: 'pointer',
         clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
@@ -573,7 +594,7 @@ const styles = {
         background: 'rgba(0,82,204,0.3)',
     },
     folioDotActive: {
-        background: '#0052CC',
+        background: 'var(--border)',
     },
     addSheetButton: {
         background: 'transparent',

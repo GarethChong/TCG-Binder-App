@@ -33,6 +33,7 @@
 --border: #0052CC;
 --caution: #d9c91f;
 --danger: #E8001D;
+--back: rgba(255, 255, 255, 0.7);
 
 --popover: #0A0A14;
 --popover-foreground: rgba(235,235,220,0.8);

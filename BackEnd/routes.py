@@ -149,7 +149,7 @@ def view_binder(id):
                   'images': [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
                 for image in DecorativeImage.query.filter_by(page_id=page.id).all()]} for page in pages]
 
-    return jsonify({'id': binder.id, 'name': binder.name, 'size': binder.size, 'pages': page_list})
+    return jsonify({'id': binder.id, 'name': binder.name, 'size': binder.size, 'colour': binder.colour, 'pages': page_list})
 
 @routes.route('/binder/<int:id>', methods = ['DELETE'])
 @login_required
