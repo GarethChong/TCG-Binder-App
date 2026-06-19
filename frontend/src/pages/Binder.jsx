@@ -265,10 +265,10 @@ function Binder() {
                                                 return ( //span sits next to other elements, div starts a new line
                                                     <span key={col} style={{ margin: '5px' }}>
                                                         {card // checks if cards exist or if the slot is empty
-                                                            ? <img src={card.image_url} alt={card.name} style={{ width: '50px' }} />
+                                                            ? <img src={card.image_url} alt={card.name} style={{ width: '100%' }} />
                                                             : image //if no card, check if there is image, otherwise is empty
                                                                 ? image.is_primary //check if is primary image, else skip
-                                                                    ? <img src={image.image_url} style={{ width: '50px' }} />
+                                                                    ? <img src={image.image_url} style={{ width: '100%' }} />
                                                                     : <div />
                                                                 : <div style={styles.cardSlot} />
                                                         }
@@ -492,6 +492,7 @@ const styles = {
         justifyContent: 'space-between', //pushes one child to left and other to the right
         padding: '20px 32px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
+        height: '8vh'
     },
     brand: {
         fontFamily: "'Rajdhani', sans-serif",

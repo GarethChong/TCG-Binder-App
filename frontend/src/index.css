@@ -29,6 +29,7 @@
 --foreground: rgba(235,235,220,0.8);
 --muted-foreground: rgba(255,255,255,0.6);
 --loading-text: rgba(255,255,255,0.4);
+--ai-text: rgba(253, 255, 145, 0.85);
 
 --border: #0052CC;
 --caution: #d9c91f;
@@ -37,6 +38,8 @@
 
 --popover: #0A0A14;
 --popover-foreground: rgba(235,235,220,0.8);
+
+--ring: rgba(255,255,255,0.3);
 }
 
 @layer base {

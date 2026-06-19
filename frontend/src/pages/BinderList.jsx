@@ -366,6 +366,7 @@ const styles = {
         justifyContent: 'space-between',
         padding: '20px 32px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
+        height: '8vh'
     },
     brand: {
         fontFamily: "'Rajdhani', sans-serif",

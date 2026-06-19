@@ -8,6 +8,13 @@ import {
     DialogTitle,
 } from '../components/ui/dialog'
 import { Input } from '../components/ui/input'
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from '../components/ui/select'
 
 function Page() {
     const [binderName, setBinderName] = useState("")
@@ -16,6 +23,7 @@ function Page() {
     const [error, setError] = useState(null)
     const [cards, setCards] = useState([])
     const [images, setImages] = useState([])
+    const [colour, setColour] = useState(null)
     const [hoveredButton, setHoveredButton] = useState(null)
     const navigate = useNavigate()
 
@@ -25,7 +33,7 @@ function Page() {
     const [cardList, setCardList] = useState([])
     const [search, setSearch] = useState("")
     const [image_url, setImage_url] = useState("")
-    const [width, setWidth] = useState(1)
+    const [width, setWidth] = useState("1")
     const [selectedSlot, setSelectedSlot] = useState(null)
 
     //states for card swapping
@@ -55,7 +63,7 @@ function Page() {
         getPage()
     }, [])
 
-    useEffect(() => {
+    useEffect(() => { //for the adjustable panel
         if (!dragging) return
 
         const handleMouseMove = (e) => {
@@ -93,6 +101,7 @@ function Page() {
             setPage(data)
             setCards(data.cards)
             setImages(data.images)
+            setColour(data.colour)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -125,6 +134,7 @@ function Page() {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
+                    card_id: card.card_id,
                     name: card.name,
                     card_number: card.number,
                     card_set: card.set,
@@ -264,19 +274,8 @@ function Page() {
         }
     }
 
-    const calculateTotal = (prices, cards) => {
-        return Object.values(prices)
-            .filter(price => price !== 'unavailable')
-            .reduce((total, price) => ({
-                low: total.low + price.low,
-                mid: total.mid + price.mid,
-                high: total.high + price.high
-            }), { low: 0, mid: 0, high: 0 })
-    }
-
     const aiSuggestions = async () => {
         try {
-            setShowModal(true)
             setLoadingSuggestions(true)
             const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/suggestions`, {
                 method: 'POST',
@@ -302,8 +301,6 @@ function Page() {
         }
     }
 
-    const totals = calculateTotal(prices, cards)
-
     if (loading) return (
         <div style={styles.loadingRoot}>
             <p style={styles.loadingText}>Loading collection...</p>
@@ -322,9 +319,9 @@ function Page() {
             {/* top bar */}
             <div style={styles.topBar}>
                 <div style={styles.brand}>
-                    TCG<span style={{ color: '#E8001D' }}>■</span>BINDER
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>— {binderName}</span>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px', marginLeft: '8px' }}>Page {page.page_number}</span>
+                    TCG<span style={{ color: 'var(--danger)' }}>■</span>BINDER
+                    <span style={{ color: 'var(--loading-text)', fontSize: '15px', marginLeft: '8px' }}>— {binderName}</span>
+                    <span style={{ color: 'var(--loading-text)', fontSize: '15px', marginLeft: '8px' }}>Page {page.page_number}</span>
                 </div>
                 <button
                     onMouseEnter={() => setHoveredButton('collection')}
@@ -332,6 +329,8 @@ function Page() {
                     onClick={() => navigate(`/binder/${id}`)}
                     style={{
                         ...styles.backButton,
+                        gap: '6px',
+                        padding: '6px 12px',
                         border: `1px solid ${hoveredButton === 'collection' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
                     }}
                     title="binder"
@@ -350,17 +349,36 @@ function Page() {
             <div style={{ display: 'flex', flexDirection: 'row' }} >
 
                 {/* main area */}
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                <div style={{ padding: '20px 32px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
                     {/* left panel */}
                     <div style={styles.panel}>
-                        <p style={styles.totalValue}>Low: {totals.low}</p>
-                        <p style={styles.totalValue}>Mid: {totals.mid}</p>
-                        <p style={styles.totalValue}>High: {totals.high}</p>
+                        {selectedSlot
+                            ? prices[selectedSlot.id] //check if prices have been fetched, else it fetches them
+                                ? prices[selectedSlot.id] === 'unavailable' //note: no pricing vs not loading is different
+                                    ? <p style={styles.valueText}>No pricing available</p>
+                                    : <div>
+                                        {Object.entries(prices[selectedSlot.id]).map(([type, values]) => (
+                                            <div key={type} style={styles.valueText}>
+                                                <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                : loadingPrice[selectedSlot.id]
+                                    ? <p>Loading Price...</p>
+                                    : <div />
+                            : <div />
+                        }
                     </div>
 
-
                     {/* grid */}
-                    <div style={styles.page}>
+                    <div style={{
+                        ...styles.page,
+                        borderTop: `5px solid ${colour}`,
+                        borderLeft: `5px solid ${number % 2 === 0 ? colour : 'none'}`,
+                        borderRight: `5px solid ${number % 2 === 1 ? colour : 'none'}`,
+                        borderBottom: `5px solid ${colour}`
+                    }}
+                    >
                         {Array.from({ length: page.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
                             <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)` }}>
                                 {Array.from({ length: page.size }, (_, i) => i).map(col => { //create columns within each row
@@ -371,29 +389,21 @@ function Page() {
                                             ? null
                                             : <span key={col} style={{
                                                 margin: '5px',
-                                                gridColumn: image && image.width === 2 ? 'span 2' : undefined
+                                                gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                border: (fromSlot && fromSlot[0] === row && fromSlot[1] === col) ||
+                                                    (toSlot && toSlot[0] === row && toSlot[1] === col)
+                                                    ? '1px solid rgba(255,255,255,0.8)'
+                                                    : 'none'
                                             }}>
                                                 {card // checks if cards exist or if the slot is empty
                                                     ? mode === 'add'
-                                                        ? <div>
-                                                            <img src={card.image_url} alt={card.name} onClick={() => setSelectedSlot(card)}
-                                                                style={{ width: '50px' }} />
-                                                            {prices[card.id] //check if prices have been fetched, else it fetches them
-                                                                ? prices[card.id] === 'unavailable' //note: no pricing vs not loading is different
-                                                                    ? <p>No pricing available</p>
-                                                                    : <div>
-                                                                        {Object.entries(prices[card.id]).map(([type, values]) => (
-                                                                            <div key={type}>
-                                                                                <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                : loadingPrice[card.id]
-                                                                    ? <p>Loading Price...</p>
-                                                                    : <div />
-                                                            }
+                                                        ? <div style={{ display: 'flex', flexDirection: 'row', }}>
+                                                            <div style={{ height: '100%' }}>
+                                                                <img src={card.image_url} alt={card.name} onClick={() => setSelectedSlot(card)}
+                                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            </div>
                                                         </div>
-                                                        : <div>
+                                                        : <div style={{ height: '100%' }}>
                                                             <img src={card.image_url} alt={card.name} onClick={() => {
                                                                 if (!fromSlot) {
                                                                     setFromSlot([row, col])
@@ -404,29 +414,15 @@ function Page() {
                                                                     setToSlot([row, col])
                                                                 }
                                                             }}
-                                                                style={{ width: '100%' }} />
-                                                            {prices[card.id] //check if prices have been fetched, else it fetches them
-                                                                ? prices[card.id] === 'unavailable' //note: no pricing vs not loading is different
-                                                                    ? <p>No pricing available</p>
-                                                                    : <div>
-                                                                        {Object.entries(prices[card.id]).map(([type, values]) => (
-                                                                            <div key={type}>
-                                                                                <p>{type}: low ${values.low} mid ${values.mid} high ${values.high}</p>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                : loadingPrice[card.id]
-                                                                    ? <p>Loading Price...</p>
-                                                                    : <div />
-                                                            }
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                         </div>
                                                     : image //if no card, check if there is image, otherwise is empty
                                                         ? mode === 'add'
-                                                            ? <div>
-                                                                <img src={image.image_url} style={{ width: '100%' }} onClick={() => setSelectedSlot(image)} />
+                                                            ? <div style={{ height: '100%' }}>
+                                                                <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => setSelectedSlot(image)} />
                                                             </div>
-                                                            : <div>
-                                                                <img src={image.image_url} style={{ width: '100%' }} onClick={() => {
+                                                            : <div style={{ height: '100%' }}>
+                                                                <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => {
                                                                     if (!fromSlot) {
                                                                         setFromSlot([row, col])
                                                                     } else if (!toSlot) {
@@ -487,10 +483,54 @@ function Page() {
                     </div>
 
                     {/* dialog to add card / image */}
-                    <Dialog open={slot !== null} onOpenChange={(isOpen) => { if (!isOpen) { setSlot(null); setSlotType(null) } }}>
-                        <DialogContent>
+                    <Dialog open={slot !== null} onOpenChange={(isOpen) => { if (!isOpen) { setSlot(null); setSlotType(null); setWidth("1") } }}>
+                        <DialogContent showCloseButton={slotType === null}>
                             <DialogHeader>
-                                <DialogTitle style={styles.dialogTitle}>Add Item</DialogTitle>
+                                {slotType === 'card'
+                                    ? <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <DialogTitle style={styles.dialogTitle}>Add Card</DialogTitle>
+                                        <button
+                                            onMouseEnter={() => setHoveredButton('back-dialog')}
+                                            onMouseLeave={() => setHoveredButton(null)}
+                                            onClick={() => setSlotType(null)}
+                                            style={{
+                                                ...styles.backButton,
+                                                gap: '2px',
+                                                padding: '3px 6px',
+                                                color: 'var(--foreground)',
+                                                border: `1px solid ${hoveredButton === 'back-dialog' ? '#fafafa' : 'rgba(0,82,204,0.4)'}`,
+                                            }}>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                                                strokeLinejoin="round">
+                                                <polyline points="8 17 3 12 8 7" /> {/* forms left arrow head  */}
+                                                <line x1="3" y1="12" x2="15" y2="12" /> {/* shift line down  */}
+                                            </svg>
+                                            <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Back</span>
+                                        </button>
+                                    </div>
+                                    : slotType === 'image'
+                                        ? <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <DialogTitle style={styles.dialogTitle}>Add Image</DialogTitle>
+                                            <button
+                                                onMouseEnter={() => setHoveredButton('back-dialog')}
+                                                onMouseLeave={() => setHoveredButton(null)}
+                                                onClick={() => setSlotType(null)}
+                                                style={{
+                                                    ...styles.backButton,
+                                                    gap: '2px',
+                                                    padding: '3px 6px',
+                                                    color: 'var(--foreground)',
+                                                    border: `1px solid ${hoveredButton === 'back-dialog' ? '#fafafa' : 'rgba(0,82,204,0.4)'}`,
+                                                }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                                                    strokeLinejoin="round">
+                                                    <polyline points="8 17 3 12 8 7" /> {/* forms left arrow head  */}
+                                                    <line x1="3" y1="12" x2="15" y2="12" /> {/* shift line down  */}
+                                                </svg>
+                                                <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Back</span>
+                                            </button>
+                                        </div>
+                                        : <DialogTitle style={styles.dialogTitle}>Add Item</DialogTitle>}
                             </DialogHeader>
 
                             <div>
@@ -502,8 +542,8 @@ function Page() {
                                             onMouseLeave={() => setHoveredButton(null)}
                                             onClick={() => setSlotType('card')}
                                             style={{
-                                                ...styles.backButton,
-                                                color: 'rgba(235,235,220,0.8)',
+                                                ...styles.addObjectButton,
+                                                color: 'var(--foreground)',
                                                 border: `1px solid ${hoveredButton === 'add-card' ? '#eef653' : 'rgba(0,82,204,0.4)'}`,
                                             }}>
                                             Add Card
@@ -514,7 +554,7 @@ function Page() {
                                             onClick={() => setSlotType('image')}
                                             style={{
                                                 ...styles.addObjectButton,
-                                                color: 'rgba(235,235,220,0.8)',
+                                                color: 'var(--foreground)',
                                                 border: `1px solid ${hoveredButton === 'add-image' ? '#f4f7bd' : 'rgba(0,82,204,0.4)'}`,
                                             }}>
                                             Add Image
@@ -522,26 +562,6 @@ function Page() {
                                     </div>
                                     : slotType == 'card'
                                         ? <div style={styles.formGroup}>
-                                            <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                                <label style={styles.label}>Add Card</label>
-                                                <button
-                                                    onMouseEnter={() => setHoveredButton('back-dialog')}
-                                                    onMouseLeave={() => setHoveredButton(null)}
-                                                    onClick={() => setSlotType(null)}
-                                                    style={{
-                                                        ...styles.backButton,
-                                                        color: 'rgba(235,235,220,0.8)',
-                                                        border: `1px solid ${hoveredButton === 'back-dialog' ? '#fafafa' : 'rgba(0,82,204,0.4)'}`,
-                                                    }}>
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
-                                                        strokeLinejoin="round">
-                                                        <polyline points="8 17 3 12 8 7" /> {/* forms left arrow head  */}
-                                                        <line x1="3" y1="12" x2="15" y2="12" /> {/* shift line down  */}
-                                                    </svg>
-                                                    <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Back</span>
-                                                </button>
-                                            </div>
-
                                             <Input
                                                 type="text"
                                                 placeholder="Search card"
@@ -549,7 +569,7 @@ function Page() {
                                                 onChange={(e) => setSearch(e.target.value)}
                                             />
                                             <button style={styles.dialogButton} onClick={() => searchCard()}>Search</button>
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', overflowY: 'auto', maxHeight: '80vh' }}>
                                                 {cardList.map(card => (
                                                     <div key={`${card.number}-${card.set}`}>
                                                         <img src={card.image} alt={card.name} style={{ width: '50px' }} onClick={() => addCard(card)} />
@@ -559,45 +579,28 @@ function Page() {
                                             </div>
                                         </div>
                                         : <div style={styles.formGroup}>
-                                            <div style={{ display: 'flex', flexDirection: 'row' }}>
-                                                <label style={styles.label}>Add Image</label>
-                                                <button
-                                                    onMouseEnter={() => setHoveredButton('back-dialog')}
-                                                    onMouseLeave={() => setHoveredButton(null)}
-                                                    onClick={() => setSlotType(null)}
-                                                    style={{
-                                                        ...styles.backButton,
-                                                        color: 'rgba(235,235,220,0.8)',
-                                                        border: `1px solid ${hoveredButton === 'back-dialog' ? '#fafafa' : 'rgba(0,82,204,0.4)'}`,
-                                                    }}>
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
-                                                        strokeLinejoin="round">
-                                                        <polyline points="8 17 3 12 8 7" /> {/* forms left arrow head  */}
-                                                        <line x1="3" y1="12" x2="15" y2="12" /> {/* shift line down  */}
-                                                    </svg>
-                                                    <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Back</span>
-                                                </button>
-                                            </div>
-
-                                            <Input
-                                                type="text"
-                                                placeholder="Set Image"
-                                                value={image_url}
-                                                onChange={(e) => setImage_url(e.target.value)}
-                                            />
-                                            <div style={styles.widthRow}>
-                                                <button
-                                                    onClick={() => setWidth(width === 1 ? 2 : 1)}
-                                                    style={{
-                                                        ...styles.widthButton,
-                                                        background: width === 2 ? '#0052CC' : 'transparent',
-                                                        color: width === 2 ? 'rgba(235,235,220,0.8)' : '#0052CC',
-                                                    }}
+                                            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Set Image"
+                                                    value={image_url}
+                                                    onChange={(e) => setImage_url(e.target.value)}
+                                                />
+                                                <Select
+                                                    style={{ ...styles.inputText, width: '85px' }}
+                                                    value={width}
+                                                    onValueChange={(e) => setWidth(e)}
                                                 >
-                                                    Width: {width}
-                                                </button>
+                                                    <SelectTrigger className="font-rajdhani text-[12px] min-w-[100px] w-[100px] h-[15px]">
+                                                        <SelectValue placeholder="Select width" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="font-rajdhani min-w-[100px]">
+                                                        <SelectItem value="1">Width: 1</SelectItem>
+                                                        <SelectItem value="2">Width: 2</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                            <button onClick={() => addImage(image_url, width)} style={styles.dialogButton}>Search</button>
+                                            <button onClick={() => addImage(image_url, Number(width))} style={styles.dialogButton}>Search</button>
                                         </div>
                                 }
                             </div>
@@ -621,8 +624,8 @@ function Page() {
                             }}
                             style={{
                                 ...styles.rightPanelButton,
-                                color: 'rgba(235,235,220,0.8)',
-                                border: `1px solid ${hoveredButton === 'change-mode' ? '#0052CC' : 'rgba(0,82,204,0.4)'}`,
+                                color: 'var(--foreground)',
+                                border: `1px solid ${hoveredButton === 'change-mode' ? 'var(--border)' : 'rgba(0,82,204,0.4)'}`,
                                 boxShadow: hoveredButton === 'change-mode' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                             }}
                         >
@@ -630,8 +633,6 @@ function Page() {
                         </button>
                         {mode === 'swap' && (
                             <div>
-                                <p>From slot: {fromSlot ? `row ${fromSlot[0]}, col ${fromSlot[1]}` : 'not selected'}</p>
-                                <p>To slot: {toSlot ? `row ${toSlot[0]}, col ${toSlot[1]}` : 'not selected'}</p>
                                 {fromSlot && toSlot && (
                                     <button
                                         onMouseEnter={() => setHoveredButton('swap')}
@@ -639,8 +640,8 @@ function Page() {
                                         onClick={() => swap()}
                                         style={{
                                             ...styles.rightPanelButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'swap' ? '#0052CC' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'swap' ? 'var(--border)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'swap' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -650,7 +651,7 @@ function Page() {
                             </div>
                         )}
                         {selectedSlot && (
-                            <div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {selectedSlot.is_primary === undefined //check if is image or card
                                     ? <button
                                         onMouseEnter={() => setHoveredButton('get-price')}
@@ -658,12 +659,12 @@ function Page() {
                                         onClick={() => getPrice(selectedSlot)}
                                         style={{
                                             ...styles.rightPanelButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'get-price' ? '#d9c91f' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'get-price' ? 'var(--caution)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'get-price' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
-                                        Get Price
+                                        Fetch Price
                                     </button>
                                     : null
                                 }
@@ -674,8 +675,8 @@ function Page() {
                                         onClick={() => deleteCard(selectedSlot)}
                                         style={{
                                             ...styles.rightPanelButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'delete-card' ? '#E8001D' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'delete-card' ? 'var(--danger)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'delete-card' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -687,8 +688,8 @@ function Page() {
                                         onClick={() => deleteImage(selectedSlot)}
                                         style={{
                                             ...styles.rightPanelButton,
-                                            color: 'rgba(235,235,220,0.8)',
-                                            border: `1px solid ${hoveredButton === 'delete-image' ? '#E8001D' : 'rgba(0,82,204,0.4)'}`,
+                                            color: 'var(--foreground)',
+                                            border: `1px solid ${hoveredButton === 'delete-image' ? 'var(--danger)' : 'rgba(0,82,204,0.4)'}`,
                                             boxShadow: hoveredButton === 'delete-image' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                         }}
                                     >
@@ -709,7 +710,7 @@ function Page() {
                                 }}
                                 style={{
                                     ...styles.rightPanelButton,
-                                    color: 'rgba(235,235,220,0.8)',
+                                    color: 'var(--foreground)',
                                     border: `1px solid ${hoveredButton === 'ai-suggestions' ? '#ffffff' : 'rgba(0,82,204,0.4)'}`,
                                     boxShadow: hoveredButton === 'ai-suggestions' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
                                     transition: 'width 0.3s ease-out'
@@ -721,7 +722,7 @@ function Page() {
                     </div>
                 </div>
 
-                {/* panel handle */}
+                {/* panel resizing handle */}
                 {aiPanelOpen && (
                     <div
                         style={styles.aiPanelHandler}
@@ -734,23 +735,30 @@ function Page() {
                 {aiPanelOpen && (
                     <div style={{ ...styles.aiPanel, width: `${displayWidth}px` }}>
                         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', transition: 'width 0.3s ease-in' }}>
-                            <h3>AI Suggestions (Groq)</h3>
-                            <button onClick={() => {
-                                setDisplayWidth(0)
-                                setTimeout(() => {
-                                    setAiPanelOpen(false)
-                                }, 600)
-                            }}
+                            <h3 style={styles.aiHeader}>AI Suggestions (Groq)</h3>
+                            <button
+                                onMouseEnter={() => setHoveredButton('close-ai')}
+                                onMouseLeave={() => setHoveredButton(null)}
+                                onClick={() => {
+                                    setDisplayWidth(0)
+                                    setTimeout(() => {
+                                        setAiPanelOpen(false)
+                                    }, 600)
+                                }}
+                                style={{
+                                    ...styles.aiButton,
+                                    background: hoveredButton === 'close-ai' ? 'var(--danger)' : 'transparent'
+                                }}
                             >
-                                x
+                                ×
                             </button>
                         </div>
 
                         <div style={{ flex: 1, overflowY: 'auto' }}>
                             {suggestions && (
                                 loadingSuggestions //checks if loading
-                                    ? <p>Generating suggestions...</p>
-                                    : <p>{suggestions}</p>
+                                    ? <p style={styles.aiText}>Generating suggestions...</p>
+                                    : <p style={styles.aiText}>{suggestions}</p>
                             )}
                         </div>
 
@@ -761,11 +769,36 @@ function Page() {
                                 value={userPrompt}
                                 onChange={(e) => setUserPrompt(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter') aiSuggestions() }}
+                                style={styles.inputText}
                             />
-                            <select value={style} onChange={(e) => setStyle(e.target.value)}>
-                                <option value="traditional">Traditional</option>
-                                <option value="michi">Michi Method</option>
-                            </select>
+                            <Select
+                                style={{ ...styles.inputText, width: '85px' }}
+                                value={style}
+                                onValueChange={(e) => setStyle(e)}
+                            >
+                                <SelectTrigger className="font-rajdhani text-[var(--ai-text)] text-[12px] min-w-[100px] w-[100px] h-[15px]">
+                                    <SelectValue placeholder="Select style" />
+                                </SelectTrigger>
+                                <SelectContent className="font-rajdhani text-[var(--ai-text)] min-w-[100px]">
+                                    <SelectItem value="traditional">Traditional</SelectItem>
+                                    <SelectItem value="michi">Michi</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <button
+                                onMouseEnter={() => setHoveredButton('search-ai')}
+                                onMouseLeave={() => setHoveredButton(null)}
+                                onClick={() => { if (userPrompt) aiSuggestions() }}
+                                style={{
+                                    ...styles.aiButton,
+                                    background: hoveredButton === 'search-ai' ? 'var(--border)' : 'transparent'
+                                }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="12" y1="19" x2="12" y2="5" /> {/* arrow line */}
+                                    <polyline points="5 12 12 5 19 12" /> {/* upwards arrow head */}
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -777,7 +810,7 @@ function Page() {
 const styles = {
     root: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
@@ -785,7 +818,7 @@ const styles = {
     },
     loadingRoot: {
         minHeight: '100vh',
-        background: '#0A0A14',
+        background: 'var(--background)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -795,13 +828,13 @@ const styles = {
         fontSize: '18px',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.4)',
+        color: 'var(--loading-text)',
     },
     errorText: {
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '18px',
         letterSpacing: '0.1em',
-        color: '#E8001D',
+        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex', //keeps things horizontally
@@ -809,6 +842,7 @@ const styles = {
         justifyContent: 'space-between', //pushes one child to left and other to the right
         padding: '20px 32px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
+        height: '8vh'
     },
     brand: {
         fontFamily: "'Rajdhani', sans-serif",
@@ -821,18 +855,16 @@ const styles = {
     backButton: {
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
         background: 'transparent',
         border: '1px solid rgba(255,255,255,0.15)',
-        color: 'rgba(255,255,255,0.6)',
-        padding: '6px 12px',
+        color: 'var(--muted-foreground)',
         cursor: 'pointer',
         fontFamily: "'Exo 2', sans-serif",
         clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))',
         transition: 'color 0.2s, border-color 0.2s',
     },
     page: {
-        background: '#12121f',
+        background: 'var(--grid)',
         border: '1px solid rgba(0,82,204,0.25)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
         padding: '10px',
@@ -848,10 +880,10 @@ const styles = {
         justifyContent: 'flex-start',
         padding: '8px 4px',
     },
-    totalValue: {
+    valueText: {
         fontFamily: 'Rajdhani',
-        fontSize: '15px',
-        color: 'rgba(235,235,220,0.8)',
+        fontSize: '11px',
+        color: 'var(--foreground)',
         padding: '4px 8px',
         background: 'transparent',
     },
@@ -859,17 +891,17 @@ const styles = {
         fontFamily: 'Rajdhani',
         fontSize: '11px',
         padding: '4px 8px',
-        border: '1px solid #0052CC',
+        border: '1px solid var(--border)',
         background: 'transparent',
         cursor: 'pointer',
         clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
-        width: '8vw',
-        height: '3vw',
+        width: '120px',
+        height: '40px',
     },
     cardSlot: {
         border: '1px solid rgba(0,82,204,0.25)',
         background: 'transparent',
-        color: 'rgba(255,255,255,0.4)',
+        color: 'var(--loading-text)',
         fontSize: '20px',
         aspectRatio: '2.5/3.5',
         borderRadius: '3px',
@@ -879,14 +911,61 @@ const styles = {
     },
     aiPanelHandler: {
         width: '2px',
-        background: 'rgba(255,255,255,0.6)',
+        background: 'var(--muted-foreground)',
         cursor: 'col-resize'
     },
     aiPanel: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        background: 'var(--background)',
+        maxHeight: '92vh',
+    },
+    aiHeader: {
+        fontFamily: "'Rajdhani', sans-serif",
+        fontSize: '24px',
+        fontWeight: '600',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: '#fff',
+        lineHeight: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0'
+    },
+    aiText: {
+        flex: 1,
+        padding: '7px',
+        fontFamily: "'Rajdhani', sans-serif",
+        fontSize: '12px',
+        fontWeight: '600',
+        letterSpacing: '0.08em',
+        color: 'var(--ai-text)',
+        border: 'var(--back)'
+    },
+    inputText: {
+        padding: '3px',
+        fontFamily: "'Rajdhani', sans-serif",
+        fontSize: '12px',
+        fontWeight: '600',
+        letterSpacing: '0.08em',
+        color: 'var(--ai-text)',
+        border: 'var(--back)'
+    },
+    aiButton: {
+        fontFamily: 'Rajdhani',
+        fontSize: '22px',
+        padding: '4px 8px',
+        cursor: 'pointer',
+        width: '2vw',
+        height: '2vw',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px solid var(--back)',
+        lineHeight: '1'
     },
     dialogTitle: {
         fontFamily: "'Rajdhani', sans-serif",
@@ -913,7 +992,7 @@ const styles = {
         padding: '7px',
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '13px',
-        fontWeight: '700',
+        fontWeight: '400',
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
         cursor: 'pointer',
@@ -923,7 +1002,7 @@ const styles = {
     dialogButton: {
         flex: 1,
         padding: '7px',
-        border: '1px solid #0052CC',
+        border: '1px solid var(--border)',
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '13px',
         fontWeight: '700',
@@ -940,16 +1019,12 @@ const styles = {
         fontSize: '13px',
         fontWeight: '700',
         letterSpacing: '0.08em',
-        color: 'rgba(235,235,220,0.8)'
-    },
-    widthRow: {
-        display: 'flex',
-        gap: '8px',
+        color: 'var(--foreground)'
     },
     widthButton: {
         flex: 1,
         padding: '7px',
-        border: '1px solid #0052CC',
+        border: '1px solid var(--border)',
         fontFamily: "'Rajdhani', sans-serif",
         fontSize: '13px',
         fontWeight: '700',

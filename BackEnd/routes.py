@@ -85,10 +85,11 @@ def card_search():
 
     #if pokemon does not exist
     if not data['data']:
-        return jsonify({'message': 'Pokemon does not exist'}), 404  
+        return jsonify({'message': 'Card does not exist'}), 404  
     
     cards = [
         {
+            'card_id': card['id'],
             'name': card['name'],
             'set': card['set']['name'],
             'number': card['number'],
@@ -244,12 +245,13 @@ def view_page(id, number):
         return jsonify({'message': 'Page does not exist'}), 404 
     
     #get necessary card and image details to be shown to user
-    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url} 
+    cards = [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url, 'card_id': card.card_id} 
              for card in Card.query.filter_by(page_id=page.id).all()]
-    images = [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
+    images = [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary, 'width': image.width} 
              for image in DecorativeImage.query.filter_by(page_id=page.id).all()]
 
-    return jsonify({'binder_name': binder.name, 'page_number': page.page_number, 'size': binder.size, 'cards': cards, 'images': images})
+    return jsonify({'binder_name': binder.name, 'page_number': page.page_number, 'size': binder.size, 'cards': cards, 'images': images, 
+                    'colour': binder.colour})
 
 @routes.route('/binder/<int:id>/page/<int:number>/clear', methods = ['PUT'])
 @login_required
@@ -284,6 +286,7 @@ def clear_page(id, number):
 def add_card(id, number):
     #request for details to find the card to add
     data = request.get_json()
+    card_id = data.get('card_id')
     name = data.get('name')
     card_number = data.get('card_number')
     card_set = data.get('card_set')
@@ -315,11 +318,11 @@ def add_card(id, number):
     if card or image:
         return jsonify({'message': 'Slot already occupied'}), 404
     
-    new_card = Card(card_number=card_number, card_set=card_set, name=name,image_url=image_url, 
+    new_card = Card(card_id=card_id, card_number=card_number, card_set=card_set, name=name,image_url=image_url, 
                     slot_col=slot_col, slot_row=slot_row, page_id=page.id)
     db.session.add(new_card)
     db.session.commit()
-    return jsonify({'id': new_card.id, 'name': new_card.name, 'slot_row': new_card.slot_row, 'slot_col': new_card.slot_col, 'image_url': new_card.image_url})
+    return jsonify({'id': new_card.id, 'card_id': new_card.card_id, 'name': new_card.name, 'slot_row': new_card.slot_row, 'slot_col': new_card.slot_col, 'image_url': new_card.image_url})
 
 @routes.route('/binder/<int:id>/page/<int:number>/card/<card_id>', methods = ['DELETE'])
 @login_required
@@ -508,7 +511,7 @@ def shift(id, number):
         if isinstance(to_slot, DecorativeImage) and to_slot.width == 2 and (not isinstance(from_slot, DecorativeImage) or from_slot.width != 2):
             return jsonify({'message': 'Cant swap lateral image with a single slot card / image'}), 404
             
-        elif from_slot.width and from_slot.width == 2 and to_slot.width and to_slot.width == 2: #2 width 2 swaps
+        elif isinstance(from_slot, DecorativeImage) and from_slot.width and from_slot.width == 2 and isinstance(to_slot, DecorativeImage) and to_slot.width and to_slot.width == 2: #2 width 2 swaps
             from_slot_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=from_col+1).filter_by(slot_row=from_row).first()
             to_slot_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=to_col+1).filter_by(slot_row=to_row).first()
             temp_col = from_slot.slot_col
@@ -542,7 +545,7 @@ def shift(id, number):
 
     else: #if either is occupied
         if (isinstance(from_slot, DecorativeImage) and from_slot.width == 2) or (isinstance(to_slot, DecorativeImage) and to_slot.width == 2):
-            if (from_slot and from_slot.slot_col + 1 > binder.size - 1) or (to_slot and to_slot.slot_col + 1 > binder.size - 1):
+            if (from_slot and from_slot.slot_col + 2 > binder.size - 1) or (to_slot and to_slot.slot_col + 2 > binder.size - 1):
                 return jsonify({'message': 'Binder slot out of position'}), 404
             
             if from_slot and not to_slot:
@@ -612,22 +615,20 @@ def check_price(id, number, card_id):
     #look for card based on name, card set and card number
     headers = {'X-Api-Key': POKEMON_API_KEY}
     response = requests.get(
-        'https://api.pokemontcg.io/v2/cards',
-        params={'q': f'name:{card.name} number:{card.card_number}'},
+        f'https://api.pokemontcg.io/v2/cards/{card.card_id}',
         headers=headers
     )
 
     data = response.json()
 
-    #if card data cannot be extracted
-    if not data['data']:
-        return jsonify({'message': 'Card does not exist'}), 404  
+    if 'error' in data: 
+        return jsonify({'message': 'Invalid card id'}), 404
 
     #check if price does not exist, before accessing and returning the card price value
-    if 'tcgplayer' not in data['data'][0]:
+    if 'tcgplayer' not in data['data']:
         return jsonify({'message': 'No pricing available for this card'}), 404
     
-    price = data['data'][0]['tcgplayer']['prices']
+    price = data['data']['tcgplayer']['prices']
     return jsonify(price)
 
 @routes.route('/binder/<int:id>/page/<int:number>/suggestions', methods = ['POST'])

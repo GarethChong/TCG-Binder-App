@@ -28,6 +28,7 @@ class Page(db.Model):
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    card_id = db.Column(db.String(100), nullable=False)
     card_number = db.Column(db.Integer)
     card_set = db.Column(db.String(100))
     name = db.Column(db.String(100))
