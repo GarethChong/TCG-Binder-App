@@ -10,6 +10,7 @@ import {
     DialogFooter,
 } from '../components/ui/dialog'
 import { Input } from '../components/ui/input'
+import { Loading, ErrorMessage } from '../components/StatusMessage'
 
 function BinderList() {
     const [binders, setBinders] = useState([])
@@ -34,7 +35,7 @@ function BinderList() {
                 method: 'GET',
                 credentials: 'include',
             })
-            if (!response.ok) await handleError(response)
+            if (!response.ok) await handleError(response, navigate)
             const data = await response.json()
             setBinders(data)
         } catch (err) {
@@ -52,7 +53,7 @@ function BinderList() {
                 credentials: 'include',
                 body: JSON.stringify({ name, size, colour })
             })
-            if (!response.ok) await handleError(response)
+            if (!response.ok) await handleError(response, navigate)
             const data = await response.json()
             setBinders([...binders, data])
             //reset form
@@ -73,7 +74,7 @@ function BinderList() {
                 method: 'DELETE',
                 credentials: 'include',
             })
-            if (!response.ok) await handleError(response)
+            if (!response.ok) await handleError(response, navigate)
             setBinders(binders.filter(b => b.id !== binder.id))
         } catch (err) {
             setError(err.message)
@@ -101,19 +102,15 @@ function BinderList() {
     const emptySlots = Math.max(0, 10 - binders.length)
 
     if (loading) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.loadingText}>Loading collection...</p>
-        </div>
-    )
-
-    if (error) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.errorText}>{error}</p>
-        </div>
+        <Loading />
     )
 
     return (
         <div style={styles.root}>
+            {/* Error Message */}
+            {error
+                ? <ErrorMessage error={error} setError={setError} />
+                : null}
 
             {/* Top bar */}
             <div style={styles.topBar}>
@@ -123,7 +120,7 @@ function BinderList() {
                 <button
                     onMouseEnter={() => setHoveredButton('logout')}
                     onMouseLeave={() => setHoveredButton(null)}
-                    onClick={() => logout}
+                    onClick={logout}
                     style={{
                         ...styles.logoutButton,
                         border: `1px solid ${hoveredButton === 'logout' ? 'var(--back)' : 'rgba(255,255,255,0.15)'}`,
@@ -339,26 +336,6 @@ const styles = {
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
         overflow: 'hidden',
-    },
-    loadingRoot: {
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loadingText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: 'var(--loading-text)',
-    },
-    errorText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { handleError } from '../utils'
+import { Loading, ErrorMessage } from '../components/StatusMessage'
 
 function Binder() {
     const [binder, setBinder] = useState(null)
@@ -29,7 +30,7 @@ function Binder() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -52,7 +53,7 @@ function Binder() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -72,7 +73,7 @@ function Binder() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -95,7 +96,7 @@ function Binder() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -126,15 +127,7 @@ function Binder() {
     }
 
     if (loading) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.loadingText}>Loading collection...</p>
-        </div>
-    )
-
-    if (error) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.errorText}>{error}</p>
-        </div>
+        <Loading />
     )
 
     //to organise the pagese side by side before rendering
@@ -142,6 +135,11 @@ function Binder() {
 
     if (!currentFolio) {
         return <div style={styles.root}>
+            {/* Error Message */}
+            {error
+                ? <ErrorMessage error={error} setError={setError} />
+                : null}
+
             {/* Top bar */}
             <div style={styles.topBar}>
                 <div style={styles.brand}>
@@ -197,6 +195,10 @@ function Binder() {
 
     return (
         <div style={styles.root}>
+            {/* Error Message */}
+            {error
+                ? <ErrorMessage error={error} setError={setError} />
+                : null}
 
             {/* Top bar */}
             <div style={styles.topBar}>
@@ -263,16 +265,21 @@ function Binder() {
                                                 const card = leftPage.cards.find(c => c.slot_row === row && c.slot_col === col)
                                                 const image = leftPage.images.find(i => i.slot_row === row && i.slot_col === col)
                                                 return ( //span sits next to other elements, div starts a new line
-                                                    <span key={col} style={{ margin: '5px' }}>
-                                                        {card // checks if cards exist or if the slot is empty
-                                                            ? <img src={card.image_url} alt={card.name} style={{ width: '100%' }} />
-                                                            : image //if no card, check if there is image, otherwise is empty
-                                                                ? image.is_primary //check if is primary image, else skip
-                                                                    ? <img src={image.image_url} style={{ width: '100%' }} />
-                                                                    : <div />
-                                                                : <div style={styles.cardSlot} />
-                                                        }
-                                                    </span>
+                                                    image && !image.is_primary //check if is primary image, else skip
+                                                        ? null
+                                                        : <span key={col} style={{
+                                                            margin: '5px',
+                                                            gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                        }}>
+                                                            {card // checks if cards exist or if the slot is empty
+                                                                ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                : image //if no card, check if there is image, otherwise is empty
+                                                                    ? image.is_primary //check if is primary image, else skip
+                                                                        ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        : <div />
+                                                                    : <div style={styles.cardSlot} />
+                                                            }
+                                                        </span>
                                                 )
                                             })}
                                         </div>
@@ -323,7 +330,17 @@ function Binder() {
                                 </div>
                             </div>
                         )
-                        : <div />}
+                        : folioIndex === 0
+                            ? <div style={{
+                                ...styles.page,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderTop: `5px solid ${binder.colour}`,
+                                borderLeft: `5px solid ${binder.colour}`,
+                                borderBottom: `5px solid ${binder.colour}`
+                            }}>
+                            </div>
+                            : <div />}
 
                     {/* spine gap */}
                     <div style={{ width: '12px' }} />
@@ -350,16 +367,22 @@ function Binder() {
                                                     const card = rightPage.cards.find(c => c.slot_row === row && c.slot_col === col)
                                                     const image = rightPage.images.find(i => i.slot_row === row && i.slot_col === col)
                                                     return ( //span sits next to other elements, div starts a new line
-                                                        <span key={col} style={{ margin: '5px' }}>
-                                                            {card // checks if cards exist or if the slot is empty
-                                                                ? <img src={card.image_url} alt={card.name} style={{ width: '50px' }} />
-                                                                : image //if no card, check if there is image, otherwise is empty
-                                                                    ? image.is_primary //check if is primary image, else skip
-                                                                        ? <img src={image.image_url} style={{ width: '50px' }} />
-                                                                        : <div />
-                                                                    : <div style={styles.cardSlot} />
-                                                            }
-                                                        </span>
+                                                        image && !image.is_primary //check if is primary image, else skip
+                                                            ? null
+                                                            : <span key={col} style={{
+                                                                margin: '5px',
+                                                                gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                            }}>
+                                                                {
+                                                                    card // checks if cards exist or if the slot is empty
+                                                                        ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        : image //if no card, check if there is image, otherwise is empty
+                                                                            ? image.is_primary //check if is primary image, else skip
+                                                                                ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                                : <div />
+                                                                            : <div style={styles.cardSlot} />
+                                                                }
+                                                            </span>
                                                     )
                                                 })}
                                             </div>
@@ -412,7 +435,14 @@ function Binder() {
                             : pages.length < 30
                                 ?
                                 <div>
-                                    <div style={{ ...styles.page, alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{
+                                        ...styles.page,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderTop: `5px solid ${binder.colour}`,
+                                        borderRight: `5px solid ${binder.colour}`,
+                                        borderBottom: `5px solid ${binder.colour}`
+                                    }}>
                                         <div style={{ height: '6px', marginBottom: '1px' }}></div>
                                         <button
                                             onMouseEnter={() => setHoveredButton('add-sheet')}
@@ -428,7 +458,15 @@ function Binder() {
                                     </div>
                                     <div style={{ height: '3vw' }}></div>
                                 </div>
-                                : <div />
+                                : <div style={{
+                                    ...styles.page,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderTop: `5px solid ${binder.colour}`,
+                                    borderRight: `5px solid ${binder.colour}`,
+                                    borderBottom: `5px solid ${binder.colour}`
+                                }}>
+                                </div>
                         }
                     </div>
                 </div>
@@ -465,26 +503,6 @@ const styles = {
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
         overflow: 'hidden',
-    },
-    loadingRoot: {
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loadingText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: 'var(--loading-text)',
-    },
-    errorText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex', //keeps things horizontally

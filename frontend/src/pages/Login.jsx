@@ -6,7 +6,6 @@ function Login() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    //first value is the current value, second value is the function to update; '' is the initial value starting username with an empty string
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')

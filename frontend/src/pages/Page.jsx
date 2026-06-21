@@ -15,6 +15,7 @@ import {
     SelectContent,
     SelectItem,
 } from '../components/ui/select'
+import { Loading, ErrorMessage } from '../components/StatusMessage'
 
 function Page() {
     const [binderName, setBinderName] = useState("")
@@ -93,7 +94,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -117,7 +118,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -145,7 +146,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -167,7 +168,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -192,7 +193,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -214,7 +215,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -240,7 +241,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -288,7 +289,7 @@ function Page() {
             })
 
             if (!response.ok) {
-                await handleError(response)
+                await handleError(response, navigate)
             }
 
             const data = await response.json()
@@ -302,19 +303,15 @@ function Page() {
     }
 
     if (loading) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.loadingText}>Loading collection...</p>
-        </div>
-    )
-
-    if (error) return (
-        <div style={styles.loadingRoot}>
-            <p style={styles.errorText}>{error}</p>
-        </div>
+        <Loading />
     )
 
     return (
         <div style={styles.root}>
+            {/* Error Message */}
+            {error
+                ? <ErrorMessage error={error} setError={setError} />
+                : null}
 
             {/* top bar */}
             <div style={styles.topBar}>
@@ -815,26 +812,6 @@ const styles = {
         flexDirection: 'column',
         fontFamily: "'Exo 2', sans-serif",
         overflow: 'hidden',
-    },
-    loadingRoot: {
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loadingText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: 'var(--loading-text)',
-    },
-    errorText: {
-        fontFamily: "'Rajdhani', sans-serif",
-        fontSize: '18px',
-        letterSpacing: '0.1em',
-        color: 'var(--danger)',
     },
     topBar: {
         display: 'flex', //keeps things horizontally

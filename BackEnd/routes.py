@@ -147,7 +147,7 @@ def view_binder(id):
     page_list = [{'id': page.id, 'page_number': page.page_number, 
                   'cards': [{'slot_row': card.slot_row, 'slot_col': card.slot_col, 'name': card.name, 'id': card.id, 'image_url': card.image_url} 
                 for card in Card.query.filter_by(page_id=page.id).all()],
-                  'images': [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary} 
+                  'images': [{'slot_row': image.slot_row, 'slot_col': image.slot_col, 'id': image.id, 'image_url': image.image_url, 'is_primary': image.is_primary, 'width': image.width} 
                 for image in DecorativeImage.query.filter_by(page_id=page.id).all()]} for page in pages]
 
     return jsonify({'id': binder.id, 'name': binder.name, 'size': binder.size, 'colour': binder.colour, 'pages': page_list})
@@ -625,7 +625,7 @@ def check_price(id, number, card_id):
         return jsonify({'message': 'Invalid card id'}), 404
 
     #check if price does not exist, before accessing and returning the card price value
-    if 'tcgplayer' not in data['data']:
+    if 'tcgplayer' not in data['data'] or 'prices' not in data['data']['tcgplayer']:
         return jsonify({'message': 'No pricing available for this card'}), 404
     
     price = data['data']['tcgplayer']['prices']
