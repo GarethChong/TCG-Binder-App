@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { handleError } from '../utils'
+import ReactMarkdown from 'react-markdown'
 import {
     Dialog,
     DialogContent,
@@ -755,7 +756,9 @@ function Page() {
                             {suggestions && (
                                 loadingSuggestions //checks if loading
                                     ? <p style={styles.aiText}>Generating suggestions...</p>
-                                    : <p style={styles.aiText}>{suggestions}</p>
+                                    : <div style={styles.aiText}>
+                                        <ReactMarkdown>{suggestions}</ReactMarkdown>
+                                    </div>
                             )}
                         </div>
 

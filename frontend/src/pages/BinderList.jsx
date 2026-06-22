@@ -25,6 +25,10 @@ function BinderList() {
     const [hoveredId, setHoveredId] = useState(null)
     const navigate = useNavigate()
 
+    //states to change between entering and editing
+    const [mode, setMode] = useState('normal')
+    const [selectedBinder, setSelectedBinder] = useState(null)
+
     useEffect(() => {
         getBinders()
     }, [])
@@ -76,6 +80,23 @@ function BinderList() {
             })
             if (!response.ok) await handleError(response, navigate)
             setBinders(binders.filter(b => b.id !== binder.id))
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    const renameBinder = async (name, binder) => {
+        try {
+            const response = await fetch(`http://localhost:5000/binder/${binder.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ name })
+            })
+            if (!response.ok) await handleError(response, navigate)
+            const data = await response.json()
+            setSelectedBinder(null)
+            getBinders()
         } catch (err) {
             setError(err.message)
         }
@@ -139,6 +160,24 @@ function BinderList() {
                 </button>
             </div>
 
+            {/* Toggle Mode */}
+            <div style={{ textAlign: 'right', marginTop: '5px' }}>
+                <button
+                    onMouseEnter={() => setHoveredButton('change-mode')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    onClick={() => {
+                        setMode(mode === 'normal' ? 'edit' : 'normal') //button to toggle between modes; reset all states when toggling modes
+                    }}
+                    style={{
+                        ...styles.toggleButton,
+                        border: `1px solid ${hoveredButton === 'change-mode' ? 'var(--border)' : 'rgba(0,82,204,0.4)'}`,
+                        boxShadow: hoveredButton === 'change-mode' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
+                    }}
+                >
+                    Switch to {mode === 'normal' ? 'Edit' : 'Normal'} Mode
+                </button>
+            </div>
+
             {/* Page title */}
             <div style={styles.titleArea}>
                 <h1 style={styles.title}>My Collection</h1>
@@ -155,47 +194,105 @@ function BinderList() {
                     {binders.map((binder) => {
                         const isSelected = selectedId === binder.id
                         return (
-                            <div
-                                key={binder.id}
-                                onMouseEnter={() => setHoveredId(binder.id)}
-                                onMouseLeave={() => setHoveredId(null)}
-                                onClick={() => handleBinderClick(binder)}
-                                style={{
-                                    ...styles.binder,
-                                    background: `linear-gradient(135deg, ${binder.colour || 'var(--border)'}, ${binder.colour || 'var(--border)'}99)`,
-                                    transform: isSelected ? 'translateY(-120%) scale(1.08)' : 'translateY(0) scale(1)',
-                                    opacity: isSelected ? 0 : 1,
-                                    transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
-                                    boxShadow: isSelected
-                                        ? 'none'
-                                        : '4px 0 12px rgba(0,0,0,0.4), inset -2px 0 6px rgba(0,0,0,0.2)',
-                                }}
-                            >
-                                {/* Spine highlight */}
-                                <div style={styles.spineHighlight} />
-
-                                {/* Vertical binder name */}
-                                <span style={styles.binderName}>
-                                    {binder.name}
-                                </span>
-
-                                {/* Delete button */}
-                                <button
-                                    onMouseEnter={() => setHoveredButton('delete-binder')}
-                                    onMouseLeave={() => setHoveredButton(null)}
-                                    onClick={(e) => deleteBinder(e, binder)}
+                            mode === 'normal'
+                                ? <div
+                                    key={binder.id}
+                                    onMouseEnter={() => setHoveredId(binder.id)}
+                                    onMouseLeave={() => setHoveredId(null)}
+                                    onClick={() => handleBinderClick(binder)}
                                     style={{
-                                        ...styles.deleteButton,
-                                        opacity: hoveredId === binder.id ? 1 : 0,
-                                        textShadow: hoveredButton === 'delete-binder' ? '0 0 8px rgba(255, 255, 255, 0.9)' : 'none',
+                                        ...styles.binder,
+                                        background: `linear-gradient(135deg, ${binder.colour || 'var(--border)'}, ${binder.colour || 'var(--border)'}99)`,
+                                        transform: isSelected ? 'translateY(-120%) scale(1.08)' : 'translateY(0) scale(1)',
+                                        opacity: isSelected ? 0 : 1,
+                                        transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease',
+                                        boxShadow: isSelected
+                                            ? 'none'
+                                            : '4px 0 12px rgba(0,0,0,0.4), inset -2px 0 6px rgba(0,0,0,0.2)',
+                                        border: hoveredId === binder.id ? 'rgb(255, 255, 255)' : null
                                     }}
-                                    title="Delete binder"
                                 >
-                                    ×
-                                </button>
-                            </div>
+                                    {/* Spine highlight */}
+                                    <div style={styles.spineHighlight} />
+
+                                    {/* Vertical binder name */}
+                                    <span style={styles.binderName}>
+                                        {binder.name}
+                                    </span>
+
+                                    {/* Delete button */}
+                                    <button
+                                        onMouseEnter={() => setHoveredButton('delete-binder')}
+                                        onMouseLeave={() => setHoveredButton(null)}
+                                        onClick={(e) => deleteBinder(e, binder)}
+                                        style={{
+                                            ...styles.deleteButton,
+                                            opacity: hoveredId === binder.id ? 1 : 0,
+                                            textShadow: hoveredButton === 'delete-binder' ? '0 0 8px rgba(255, 255, 255, 0.9)' : 'none',
+                                        }}
+                                        title="Delete binder"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                : <div
+                                    key={binder.id}
+                                    onMouseEnter={() => setHoveredId(binder.id)}
+                                    onMouseLeave={() => setHoveredId(null)}
+                                    onClick={() => setSelectedBinder(binder)}
+                                    style={{
+                                        ...styles.binder,
+                                        background: `linear-gradient(135deg, ${binder.colour || 'var(--border)'}, ${binder.colour || 'var(--border)'}99)`,
+                                        border: hoveredId === binder.id ? 'rgb(255, 255, 255)' : null
+                                    }}
+                                >
+                                    {/* Spine highlight */}
+                                    <div style={styles.spineHighlight} />
+
+                                    {/* Vertical binder name */}
+                                    <span style={styles.binderName}>
+                                        {binder.name}
+                                    </span>
+                                </div>
                         )
                     })}
+
+                    {/* Dialog for name change */}
+                    <Dialog open={selectedBinder} onOpenChange={setSelectedBinder}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle style={styles.dialogTitle}>
+                                        Rename Binder
+                                    </DialogTitle>
+                                </DialogHeader>
+
+                                <div style={styles.formGroup}>
+                                    <label style={styles.label}>Name</label>
+                                    <Input
+                                        placeholder= {selectedBinder?.name}
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                    />
+                                </div>
+
+                                <DialogFooter>
+                                    <button
+                                        onMouseEnter={() => setHoveredButton('rename-binder')}
+                                        onMouseLeave={() => setHoveredButton(null)}
+                                        onClick={() => renameBinder(name, selectedBinder)}
+                                        disabled={!name.trim()}
+                                        style={{
+                                            ...styles.dialogButton,
+                                            color: 'var(--primary-text)',
+                                            border: `1px solid ${hoveredButton === 'rename-binder' ? 'var(--border)' : 'rgba(255,255,255,0.15)'}`,
+                                            boxShadow: hoveredButton === 'rename-binder' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
+                                        }}
+                                    >
+                                        Change Name
+                                    </button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
 
                     {/* Empty slots */}
                     {binders.length < 10 && (
@@ -280,7 +377,7 @@ function BinderList() {
                                         onClick={createBinder}
                                         disabled={!name.trim()}
                                         style={{
-                                            ...styles.createButton,
+                                            ...styles.dialogButton,
                                             color: 'var(--primary-text)',
                                             border: `1px solid ${hoveredButton === 'create-binder' ? 'var(--border)' : 'rgba(255,255,255,0.15)'}`,
                                             boxShadow: hoveredButton === 'create-binder' ? '0 0 8px rgba(0,82,204,0.6)' : 'none',
@@ -480,7 +577,7 @@ const styles = {
     },
     shelf: {
         height: '1.5vw',
-        background: 'linear-gradient(180deg, #2A2D3E 0%, #1A1D2E 100%)',
+        background: 'linear-gradient(180deg, #432200 0%, #351a00 100%)',
         borderRadius: '2px',
         marginTop: '2px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
@@ -545,7 +642,7 @@ const styles = {
         cursor: 'pointer',
         transition: 'box-shadow 0.15s, outline 0.15s',
     },
-    createButton: {
+    dialogButton: {
         flex: 1,
         padding: '7px',
         border: '1px solid var(--border)',
@@ -557,7 +654,18 @@ const styles = {
         cursor: 'pointer',
         clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
         background: 'transparent'
-    }
+    },
+    toggleButton: {
+        fontFamily: 'Rajdhani',
+        fontSize: '11px',
+        padding: '4px 8px',
+        border: '1px solid var(--border)',
+        background: 'transparent',
+        cursor: 'pointer',
+        clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+        width: '140px',
+        height: '40px',
+    },
 }
 
 export default BinderList

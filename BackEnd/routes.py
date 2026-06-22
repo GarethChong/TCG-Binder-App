@@ -152,6 +152,30 @@ def view_binder(id):
 
     return jsonify({'id': binder.id, 'name': binder.name, 'size': binder.size, 'colour': binder.colour, 'pages': page_list})
 
+@routes.route('/binder/<int:id>', methods=['PUT'])
+@login_required
+def rename_binder(id):
+    #request for a name for a new binder
+    data = request.get_json()
+    name = data.get('name')
+
+    #find the binder by the id
+    binder = Binder.query.filter_by(id=id).first()
+
+    #check if the binder exist and whether user is allowed access
+    if not binder:
+        return jsonify({'message': 'Binder does not exist'}), 404
+
+    if binder.user_id != current_user.id:
+        return jsonify({'message': 'You have no access to this binder'}), 403
+    
+    if binder.name == name:
+        return jsonify({'message': 'You cant rename a binder with the same name'}), 403
+
+    binder.name = name
+    db.session.commit()
+    return jsonify({'id': binder.id, 'name': binder.name, 'colour': binder.colour})
+
 @routes.route('/binder/<int:id>', methods = ['DELETE'])
 @login_required
 def delete_binder(id):
@@ -655,11 +679,10 @@ def ai_suggestion(id, number):
 
     if style == "michi":
         #prompt for the ai
-        prompt = f"""You are "Master Binder," an elite, professional Pokémon TCG curator and master collector. You have designed thousands of high-end 
-        binder layouts, specialising in cutting-edge display art styles like the Michi Method. Your job is to help users curate visually stunning, 
-        narratively rich, and structurally satisfying binder layouts. You don't just list cards; you design a gallery.
+        prompt = f"""You are an elite, professional Pokémon TCG curator and master collector who has designed thousands of high-end 
+        binder layouts, specialising in cutting-edge display art styles using the Michi Method. 
 
-        You must adapt fluidly to different page dimensions, which can range from 2x2, 3x3, 4x3, 4x4, up to 5x5 grids. Always verify the grid dimensions
+        You must adapt fluidly to different page dimensions, which can range from 2x2, 3x3, up to 4x4 grids. Always verify the grid dimensions
         [Rows x Columns] provided in the session context.
 
         =========================================
@@ -668,58 +691,40 @@ def ai_suggestion(id, number):
         - Current Cards on Page: {[{'name': card.name, 'set': card.card_set, 'number': card.card_number, 'row': card.slot_row, 'col': card.slot_col}
                                     for card in cards]}
         - Current Images on Page: {[{'row': image.slot_row, 'col': image.slot_col, 'width': image.width} for image in images if image.is_primary]}
+        - Current Empty Slots: {binder.size ** 2 - len(cards) - len([i for i in images if i.is_primary])}
         - Display Style Preference: [Michi Method Art-Inserts]
         =========================================
 
         YOUR MISSION:
         Analyze the "Current Cards on Page" to deduce their shared aesthetic, color palette, artist, or generation. Then, read the "User Prompt" below.
-        Your goal is to fulfill the user's specific request, using your elite curation knowledge to fill empty slots, rearrange existing cards for 
-        better symmetry, or introduce completely unexpected, high-concept layouts that match their requested vibe and selected Display Style.
-
-        CORE CURATION STYLES:
-
-        Michi Method Style (Art-Inserts & Multi-Pocket Landscapes):
-        - Treat the grid like a custom canvas. Do not fill every pocket with cards. 
-        - Strategically substitute card pockets with "Custom Art Inserts" or "Negative Space Fillers" to frame the active cards beautifully.
-        - Master the multi-pocket crop: Suggest large, cohesive background illustrations or extended landscapes that span across multiple adjacent slots
-        (e.g., an illustration that stretches across Row 1 Col 1 and Row 1 Col 2 as a seamless 1x2 banner) to bridge the physical gaps between card 
-        slots.
-        - Design custom aesthetic backdrops (like botanical motifs, type-matching textures, character field guides, or minimalist block gradients) that 
-        accentuate the artwork of the active cards.
+        Your goal is to fulfill the user's request, using your elite curation knowledge to fill empty slots.
 
         OUTPUT FORMATTING RULES:
-        You must provide your final layout configuration using a strict coordinate mapping. Every single entry in the layout must include specific 
-        metadata so the application can render the visual layout automatically:
+        Format your response using markdown:
+        - Use **bold** for card names and set names
+        - Use a dash (-) for each suggestion as a bullet point
+        - Include a brief paragraph on top explaining why each card fits, do NOT need to elaborate on michi method
+        - Provide your list of cards and a short description of images which would fill the empty slots (you may give more than the amount of empty slots)
+        - For each image, give a brief description which is less than 2 lines
 
         For Card Entries, you MUST provide:
-        - The exact [Row, Column] coordinates.
-        - [Card Type]: Mark as "User Existing Card" or "AI Recommendation".
         - [Card Details]: Exact Pokémon Name and exact Expansion/Set Name.
-        - [Visual Search Asset]: A descriptive visual search string for the app to fetch the card image.
 
         For Michi Method Art Inserts, you MUST provide:
-        - The exact coordinate span (e.g., [Row 1, Col 1 to Row 1, Col 2] for a 1x2 banner).
-        - [Card Type]: Mark as "Michi Method Art Insert".
-        - [Asset Description]: A detailed visual/thematic description of what the art filler looks like.
-        - [Image Prompt]: A highly detailed text-to-image prompt to allow the app to generate or fetch a fitting graphic background for this pocket 
-        span.
+        - [Image Details]: A short explanation of potential wallpapers users can search for online
 
         Tone Guidelines:
-        - Passionate, insightful, and articulate. Use collector terminology naturally (e.g., "Alt Art," "Visual Weight," "Negative Space," "Multi-Slot 
-        Crop," "Michi Insert").
-        - Be encouraging but honest—if the user's prompt request will clash visually with their current cards, gently explain why and offer a cleaner 
-        alternative.
+        - Concise, give short answers. 
 
         =========================================
         USER PROMPT:
         {user_prompt}
         ========================================="""
     else:
-        prompt = f"""You are "Master Binder," an elite, professional Pokémon TCG curator and master collector. You have designed thousands of high-end 
-        binder layouts, specialising in traditional set organization. Your job is to help users curate visually stunning, narratively rich, and 
-        structurally satisfying binder layouts. You don't just list cards; you design a gallery.
+        prompt = f"""You are an elite, professional Pokémon TCG curator and master collector who has designed thousands of high-end 
+        binder layouts, specialising in cutting-edge display art styles. 
 
-        You must adapt fluidly to different page dimensions, which can range from 2x2, 3x3, 4x3, 4x4, up to 5x5 grids. Always verify the grid dimensions
+        You must adapt fluidly to different page dimensions, which can range from 2x2, 3x3, up to 4x4 grids. Always verify the grid dimensions
         [Rows x Columns] provided in the session context.
 
         =========================================
@@ -727,42 +732,31 @@ def ai_suggestion(id, number):
         - Grid Size: {binder.size}
         - Current Cards on Page: {[{'name': card.name, 'set': card.card_set, 'number': card.card_number, 'row': card.slot_row, 'col': card.slot_col}
                                     for card in cards]}
-        - Current Images on Page: {[{'row': image.slot_row, 'col': image.slot_col, 'width': image.width} for image in images if image.is_primary]}
-        - Display Style Preference: [Traditional Card-Only]
+        - Current Empty Slots: {binder.size ** 2 - len(cards)}
+        - Display Style Preference: [Traditional Pokemon Cards]
         =========================================
 
         YOUR MISSION:
         Analyze the "Current Cards on Page" to deduce their shared aesthetic, color palette, artist, or generation. Then, read the "User Prompt" below.
-        Your goal is to fulfill the user's specific request, using your elite curation knowledge to fill empty slots, rearrange existing cards for 
-        better symmetry, or introduce completely unexpected, high-concept layouts that match their requested vibe and selected Display Style.
-
-        CORE CURATION STYLES:
-
-        Traditional Style (Card-Only):
-        - Every pocket is meant to hold an individual Pokémon card. 
-        - Focus on visual weight, color gradients, and structural symmetry across the coordinates. Use clear focal points (like the center of odd grids,
-        or the core quad of even grids).
+        Your goal is to fulfill the user's request, using your elite curation knowledge to fill empty slots.
 
         OUTPUT FORMATTING RULES:
-        You must provide your final layout configuration using a strict coordinate mapping. Every single entry in the layout must include specific 
-        metadata so the application can render the visual layout automatically:
+        Format your response using markdown:
+        - Use **bold** for card names and set names
+        - Use a dash (-) for each suggestion as a bullet point
+        - Include a brief paragraph on top explaining why each card fits
+        - Provide your list of cards and a short description of images which would fill the empty slots (you may give more than the amount of empty slots)
 
         For Card Entries, you MUST provide:
-        - The exact [Row, Column] coordinates.
-        - [Card Type]: Mark as "User Existing Card" or "AI Recommendation".
         - [Card Details]: Exact Pokémon Name and exact Expansion/Set Name.
-        - [Visual Search Asset]: A descriptive visual search string for the app to fetch the card image.
 
         Tone Guidelines:
-        - Passionate, insightful, and articulate. Use collector terminology naturally (e.g., "Alt Art," "Visual Weight," "Negative Space," "Multi-Slot 
-        Crop,").
-        - Be encouraging but honest—if the user's prompt request will clash visually with their current cards, gently explain why and offer a cleaner 
-        alternative.
+        - Concise, give short answers. 
 
-    =========================================
-    USER PROMPT:
-    {user_prompt}
-    ========================================="""
+        =========================================
+        USER PROMPT:
+        {user_prompt}
+        ========================================="""
 
     client = Groq(api_key=GROQ_API_KEY)
     response = client.chat.completions.create(model='llama-3.3-70b-versatile', messages=[{'role': 'user', 'content': prompt}])
