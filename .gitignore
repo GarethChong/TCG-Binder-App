@@ -1,6 +1,7 @@
 instance/
 __pycache__/
 *.pyc
-.envnode_modules/
+.env
+node_modules/
 *.db
 FrontEnd/dist/
