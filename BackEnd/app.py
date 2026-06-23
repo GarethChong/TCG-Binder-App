@@ -16,6 +16,10 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///cards.db')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+#allows cookies to be sent cross-origin over HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
+
 #Cross-Origin Resource Sharing; allows front end access to back end data
 CORS(app, supports_credentials=True, origins=[
     "http://localhost:5173",
