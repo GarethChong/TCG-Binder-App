@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///car
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 #Cross-Origin Resource Sharing; allows front end access to back end data
-CORS(app, supports_credentials=True, origins=["http://localhost:5173", "https://tcg-binder-app.vercel.app"])
+CORS(app, supports_credentials=True, origins=["http://localhost:5173", "https://tcg-binder-app-git-main-garethchong12.vercel.app"])
 
 #initialise the app
 db.init_app(app)
