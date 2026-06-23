@@ -12,7 +12,8 @@ load_dotenv()
 app = Flask(__name__)
 #dictionary that holds the configuration settings for the Flask application, specifically the URI for the SQLite database. 
 #tells SQLAlchemy where to find the database file (cards.db) that will be used to store and manage the card data.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cards.db'
+#included SQLite in case PostgreSQL fails
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///cards.db')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 #Cross-Origin Resource Sharing; allows front end access to back end data
