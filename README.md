@@ -2,7 +2,7 @@
 
 A web application for Pokémon card collectors to plan and organise binders in both traditional (cards only) and michi (cards combined with images) styles.
 
-[Live Demo](#) | [GitHub](#)
+[Live Demo](https://tcg-binder-app-git-main-garethchong12.vercel.app) | [GitHub](https://github.com/GarethChong/TCG-Binder-App)
 
 ---
 
