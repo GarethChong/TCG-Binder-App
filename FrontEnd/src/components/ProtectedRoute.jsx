@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import API_URL from '../config'
 
 function ProtectedRoute({ children }) {
     const [loading, setLoading] = useState(true)
@@ -7,7 +8,7 @@ function ProtectedRoute({ children }) {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const response = await fetch('http://localhost:5000/auth/check', {
+            const response = await fetch(`${API_URL}/auth/check`, {
                 method: 'GET',
                 credentials: 'include', //essential for flask login sessions
             })

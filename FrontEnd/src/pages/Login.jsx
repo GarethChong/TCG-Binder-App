@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import API_URL from '../config'
 
 function Login() {
     const navigate = useNavigate()
@@ -20,7 +21,7 @@ function Login() {
 
     const handleLogin = async () => {
         //call the backend
-        const response = await fetch('http://localhost:5000/login', {
+        const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include', //essential for flask login sessions

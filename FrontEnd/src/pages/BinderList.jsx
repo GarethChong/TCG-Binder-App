@@ -11,6 +11,7 @@ import {
 } from '../components/ui/dialog'
 import { Input } from '../components/ui/input'
 import { Loading, ErrorMessage } from '../components/StatusMessage'
+import API_URL from '../config'
 
 function BinderList() {
     const [binders, setBinders] = useState([])
@@ -35,7 +36,7 @@ function BinderList() {
 
     const getBinders = async () => {
         try {
-            const response = await fetch('http://localhost:5000/binderlist', {
+            const response = await fetch(`${API_URL}/binderlist`, {
                 method: 'GET',
                 credentials: 'include',
             })
@@ -51,7 +52,7 @@ function BinderList() {
 
     const createBinder = async () => {
         try {
-            const response = await fetch('http://localhost:5000/binderlist', {
+            const response = await fetch(`${API_URL}/binderlist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -74,7 +75,7 @@ function BinderList() {
         //stop click from bubbling up to the binder click handler
         e.stopPropagation()
         try {
-            const response = await fetch(`http://localhost:5000/binder/${binder.id}`, {
+            const response = await fetch(`${API_URL}/${binder.id}`, {
                 method: 'DELETE',
                 credentials: 'include',
             })
@@ -87,7 +88,7 @@ function BinderList() {
 
     const renameBinder = async (name, binder) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${binder.id}`, {
+            const response = await fetch(`${API_URL}/${binder.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -112,7 +113,7 @@ function BinderList() {
     }
 
     const logout = async () => {
-        const response = await fetch('http://localhost:5000/logout', {
+        const response = await fetch(`${API_URL}/logout`, {
             method: 'POST',
             credentials: 'include',
         })

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { handleError } from '../utils'
 import { Loading, ErrorMessage } from '../components/StatusMessage'
+import API_URL from '../config'
 
 function Binder() {
     const [binder, setBinder] = useState(null)
@@ -24,7 +25,7 @@ function Binder() {
     const getBinder = async () => {
         try {
             setLoading(true)
-            const response = await fetch(`http://localhost:5000/binder/${id}`, {
+            const response = await fetch(`${API_URL}/binder/${id}`, {
                 method: 'GET',
                 credentials: 'include'
             })
@@ -47,7 +48,7 @@ function Binder() {
     const addSheet = async () => {
         try {
             setLoading(true)
-            const response = await fetch(`http://localhost:5000/binder/${id}`, {
+            const response = await fetch(`${API_URL}/binder/${id}`, {
                 method: 'POST',
                 credentials: 'include'
             })
@@ -67,7 +68,7 @@ function Binder() {
 
     const deleteSheet = async (page) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${page.page_number}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${page.page_number}`, {
                 method: 'DELETE',
                 credentials: 'include',
             })
@@ -90,7 +91,7 @@ function Binder() {
 
     const clearPage = async (page) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${page.page_number}/clear`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${page.page_number}/clear`, {
                 method: 'PUT',
                 credentials: 'include',
             })

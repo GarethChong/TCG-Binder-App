@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import API_URL from '../config'
 
 function Register() {
     const navigate = useNavigate()
@@ -10,7 +11,7 @@ function Register() {
     const [error, setError] = useState('')
 
     const handleRegistration = async () => {
-        const response = await fetch('http://localhost:5000/register', {
+        const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

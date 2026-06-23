@@ -17,6 +17,7 @@ import {
     SelectItem,
 } from '../components/ui/select'
 import { Loading, ErrorMessage } from '../components/StatusMessage'
+import API_URL from '../config'
 
 function Page() {
     const [binderName, setBinderName] = useState("")
@@ -89,7 +90,7 @@ function Page() {
     const getPage = async () => {
         try {
             setLoading(true)
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}`, {
                 method: 'GET',
                 credentials: 'include'
             })
@@ -113,7 +114,7 @@ function Page() {
 
     const searchCard = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/cards/search?name=${search}`, {
+            const response = await fetch(`${API_URL}/cards/search?name=${search}`, {
                 method: 'GET',
                 credentials: 'include',
             })
@@ -131,7 +132,7 @@ function Page() {
 
     const addCard = async (card) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -163,7 +164,7 @@ function Page() {
 
     const deleteCard = async (card) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}/card/${card.id}`, {
                 method: 'DELETE',
                 credentials: 'include',
             })
@@ -181,7 +182,7 @@ function Page() {
 
     const addImage = async (image, width) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/image`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}/image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -210,7 +211,7 @@ function Page() {
 
     const deleteImage = async (image) => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/image/${image.id}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}/image/${image.id}`, {
                 method: 'DELETE',
                 credentials: 'include',
             })
@@ -229,7 +230,7 @@ function Page() {
 
     const swap = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -257,7 +258,7 @@ function Page() {
     const getPrice = async (card) => {
         try {
             setLoadingPrice(prev => ({ ...prev, [card.id]: true }))
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/card/${card.id}/price`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}/card/${card.id}/price`, {
                 method: 'GET',
                 credentials: 'include',
             })
@@ -279,7 +280,7 @@ function Page() {
     const aiSuggestions = async () => {
         try {
             setLoadingSuggestions(true)
-            const response = await fetch(`http://localhost:5000/binder/${id}/page/${number}/suggestions`, {
+            const response = await fetch(`${API_URL}/binder/${id}/page/${number}/suggestions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
