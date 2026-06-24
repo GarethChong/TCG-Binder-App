@@ -103,6 +103,7 @@ User
 ├── username (unique)
 
 └── password (hashed)
+
 Binder
 
 ├── id (PK)
@@ -123,6 +124,7 @@ Page
 ├── sheet
 
 └── binder_id (FK → Binder.id)
+
 Card
 
 ├── id (PK)
@@ -142,6 +144,7 @@ Card
 ├── slot_row
 
 └── page_id (FK → Page.id)
+
 DecorativeImage
 
 ├── id (PK)
