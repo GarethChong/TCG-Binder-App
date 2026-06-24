@@ -24,7 +24,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 
 #debug
-print(f"Database URL: {os.getenv('DATABASE_URL', 'NOT SET')[:20]}...")
+print(f"Database URL being used: {database_url[:30]}...")
 
 #Cross-Origin Resource Sharing; allows front end access to back end data
 CORS(app, supports_credentials=True, origins=[
