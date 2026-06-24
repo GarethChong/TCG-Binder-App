@@ -13,7 +13,10 @@ app = Flask(__name__)
 #dictionary that holds the configuration settings for the Flask application, specifically the URI for the SQLite database. 
 #tells SQLAlchemy where to find the database file (cards.db) that will be used to store and manage the card data.
 #included SQLite in case PostgreSQL fails
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///cards.db')
+database_url = os.getenv('DATABASE_URL', 'sqlite:///cards.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url  
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 #allows cookies to be sent cross-origin over HTTPS
