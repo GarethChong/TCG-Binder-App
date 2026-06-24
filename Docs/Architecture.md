@@ -115,6 +115,7 @@ Binder
 ├── colour
 
 └── user_id (FK → User.id)
+
 Page
 
 ├── id (PK)
