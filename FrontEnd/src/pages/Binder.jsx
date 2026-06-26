@@ -260,31 +260,36 @@ function Binder() {
                                 }}>
 
                                     {/* grid */}
-                                    {Array.from({ length: binder.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
-                                        <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${binder.size}, 1fr)` }}>
-                                            {Array.from({ length: binder.size }, (_, i) => i).map(col => { //create columns within each row
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: `repeat(${binder.size}, 1fr)`,
+                                        gridTemplateRows: `repeat(${binder.size}, 1fr)`,
+                                        height: '100%',
+                                        width: '100%',
+                                        gap: '5px',
+                                    }}>
+                                        {Array.from({ length: binder.size }, (_, row) =>
+                                            Array.from({ length: binder.size }, (_, col) => {
                                                 const card = leftPage.cards.find(c => c.slot_row === row && c.slot_col === col)
                                                 const image = leftPage.images.find(i => i.slot_row === row && i.slot_col === col)
-                                                return ( //span sits next to other elements, div starts a new line
-                                                    image && !image.is_primary //check if is primary image, else skip
+                                                return (
+                                                    image && !image.is_primary
                                                         ? null
-                                                        : <span key={col} style={{
-                                                            margin: '5px',
-                                                            gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                        : <div key={`${row}-${col}`} style={{
+                                                            overflow: 'hidden',
+                                                            gridColumn: image?.width === 2 ? 'span 2' : undefined,
                                                         }}>
-                                                            {card // checks if cards exist or if the slot is empty
-                                                                ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                : image //if no card, check if there is image, otherwise is empty
-                                                                    ? image.is_primary //check if is primary image, else skip
-                                                                        ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                        : <div />
-                                                                    : <div style={styles.cardSlot} />
+                                                            {card
+                                                                ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                                : image
+                                                                    ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                                    : <div style={{ ...styles.cardSlot, height: '100%' }} />
                                                             }
-                                                        </span>
+                                                        </div>
                                                 )
-                                            })}
-                                        </div>
-                                    ))}
+                                            })
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* footer buttons */}
@@ -362,32 +367,36 @@ function Binder() {
                                     }}>
 
                                         {/* grid */}
-                                        {Array.from({ length: binder.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
-                                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${binder.size}, 1fr)` }}>
-                                                {Array.from({ length: binder.size }, (_, i) => i).map(col => { //create columns within each row
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: `repeat(${binder.size}, 1fr)`,
+                                            gridTemplateRows: `repeat(${binder.size}, 1fr)`,
+                                            height: '100%',
+                                            width: '100%',
+                                            gap: '5px',
+                                        }}>
+                                            {Array.from({ length: binder.size }, (_, row) =>
+                                                Array.from({ length: binder.size }, (_, col) => {
                                                     const card = rightPage.cards.find(c => c.slot_row === row && c.slot_col === col)
                                                     const image = rightPage.images.find(i => i.slot_row === row && i.slot_col === col)
-                                                    return ( //span sits next to other elements, div starts a new line
-                                                        image && !image.is_primary //check if is primary image, else skip
+                                                    return (
+                                                        image && !image.is_primary
                                                             ? null
-                                                            : <span key={col} style={{
-                                                                margin: '5px',
-                                                                gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                            : <div key={`${row}-${col}`} style={{
+                                                                overflow: 'hidden',
+                                                                gridColumn: image?.width === 2 ? 'span 2' : undefined,
                                                             }}>
-                                                                {
-                                                                    card // checks if cards exist or if the slot is empty
-                                                                        ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                        : image //if no card, check if there is image, otherwise is empty
-                                                                            ? image.is_primary //check if is primary image, else skip
-                                                                                ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                                : <div />
-                                                                            : <div style={styles.cardSlot} />
+                                                                {card
+                                                                    ? <img src={card.image_url} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                                    : image
+                                                                        ? <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                                        : <div style={{ ...styles.cardSlot, height: '100%' }} />
                                                                 }
-                                                            </span>
+                                                            </div>
                                                     )
-                                                })}
-                                            </div>
-                                        ))}
+                                                })
+                                            )}
+                                        </div>
                                     </div>
                                     {/* footer buttons */}
                                     <div style={styles.pageFooter}>
