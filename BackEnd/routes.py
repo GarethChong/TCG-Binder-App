@@ -569,7 +569,7 @@ def shift(id, number):
 
     else: #if either is occupied
         if (isinstance(from_slot, DecorativeImage) and from_slot.width == 2) or (isinstance(to_slot, DecorativeImage) and to_slot.width == 2):
-            if (from_slot and from_slot.slot_col + 2 > binder.size - 1) or (to_slot and to_slot.slot_col + 2 > binder.size - 1):
+            if (from_slot and from_slot.slot_col + 1 > binder.size - 1) or (to_slot and to_slot.slot_col + 1 > binder.size - 1):
                 return jsonify({'message': 'Binder slot out of position'}), 404
             
             if from_slot and not to_slot:
