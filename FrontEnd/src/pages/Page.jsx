@@ -378,76 +378,63 @@ function Page() {
                         borderBottom: `5px solid ${colour}`
                     }}
                     >
-                        {Array.from({ length: page.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
-                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)`, height: `calc((49vw - ${page.size * 10}px) / ${page.size})` }}>
-                                {Array.from({ length: page.size }, (_, i) => i).map(col => { //create columns within each row
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${page.size}, 1fr)`,
+                            gridTemplateRows: `repeat(${page.size}, 1fr)`,
+                            height: '100%',
+                            width: '100%',
+                            gap: '10px',
+                        }}>
+                            {Array.from({ length: page.size }, (_, row) =>
+                                Array.from({ length: page.size }, (_, col) => {
                                     const card = cards.find(c => c.slot_row === row && c.slot_col === col)
                                     const image = images.find(i => i.slot_row === row && i.slot_col === col)
-                                    return ( //span sits next to other elements, div starts a new line
-                                        image && !image.is_primary //check if is primary image, else skip
+                                    return (
+                                        image && !image.is_primary
                                             ? null
-                                            : <span key={col} style={{
-                                                margin: '5px',
+                                            : <div key={`${row}-${col}`} style={{
                                                 overflow: 'hidden',
-                                                display: 'block',
-                                                height: `calc((49vw - ${page.size * 10}px) / ${page.size})`,
-                                                gridColumn: image && image.width === 2 ? 'span 2' : undefined,
+                                                gridColumn: image?.width === 2 ? 'span 2' : undefined,
                                                 border: (fromSlot && fromSlot[0] === row && fromSlot[1] === col) ||
                                                     (toSlot && toSlot[0] === row && toSlot[1] === col)
                                                     ? '1px solid rgba(255,255,255,0.8)'
                                                     : 'none'
                                             }}>
-                                                {card // checks if cards exist or if the slot is empty
+                                                {card
                                                     ? mode === 'add'
-                                                        ? <div style={{ display: 'flex', flexDirection: 'row', }}>
-                                                            <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
-                                                                <img src={card.image_url} alt={card.name} onClick={() => setSelectedSlot(card)}
-                                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                            </div>
-                                                        </div>
-                                                        : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
-                                                            <img src={card.image_url} alt={card.name} onClick={() => {
-                                                                if (!fromSlot) {
-                                                                    setFromSlot([row, col])
-                                                                } else if (!toSlot) {
-                                                                    setToSlot([row, col])
-                                                                } else {
-                                                                    setFromSlot(toSlot)
-                                                                    setToSlot([row, col])
-                                                                }
+                                                        ? <img src={card.image_url} alt={card.name}
+                                                            onClick={() => setSelectedSlot(card)}
+                                                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'pointer' }} />
+                                                        : <img src={card.image_url} alt={card.name}
+                                                            onClick={() => {
+                                                                if (!fromSlot) setFromSlot([row, col])
+                                                                else if (!toSlot) setToSlot([row, col])
+                                                                else { setFromSlot(toSlot); setToSlot([row, col]) }
                                                             }}
-                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                        </div>
-                                                    : image //if no card, check if there is image, otherwise is empty
+                                                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'pointer' }} />
+                                                    : image
                                                         ? mode === 'add'
-                                                            ? <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
-                                                                <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => setSelectedSlot(image)} />
-                                                            </div>
-                                                            : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
-                                                                <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => {
-                                                                    if (!fromSlot) {
-                                                                        setFromSlot([row, col])
-                                                                    } else if (!toSlot) {
-                                                                        setToSlot([row, col])
-                                                                    } else {
-                                                                        setFromSlot(toSlot)
-                                                                        setToSlot([row, col])
-                                                                    }
-                                                                }} />
-                                                            </div>
-                                                        : mode === 'add' //if slot is empty, checks if it is in add or swap mode
+                                                            ? <img src={image.image_url}
+                                                                onClick={() => setSelectedSlot(image)}
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'pointer' }} />
+                                                            : <img src={image.image_url}
+                                                                onClick={() => {
+                                                                    if (!fromSlot) setFromSlot([row, col])
+                                                                    else if (!toSlot) setToSlot([row, col])
+                                                                    else { setFromSlot(toSlot); setToSlot([row, col]) }
+                                                                }}
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'pointer' }} />
+                                                        : mode === 'add'
                                                             ? <div
                                                                 onMouseEnter={() => setHoveredButton(`${row}-${col}`)}
                                                                 onMouseLeave={() => setHoveredButton(null)}
                                                                 onClick={() => setSlot([row, col])}
                                                                 style={{
                                                                     ...styles.cardSlot,
-                                                                    textShadow: hoveredButton === `${row}-${col}`
-                                                                        ? '0 0 8px rgba(150, 223, 246, 0.6)'
-                                                                        : 'none',
-                                                                    boxShadow: hoveredButton === `${row}-${col}`
-                                                                        ? '0 0 8px rgba(0,82,204,0.6)'
-                                                                        : 'none'
+                                                                    height: '100%',
+                                                                    textShadow: hoveredButton === `${row}-${col}` ? '0 0 8px rgba(150, 223, 246, 0.6)' : 'none',
+                                                                    boxShadow: hoveredButton === `${row}-${col}` ? '0 0 8px rgba(0,82,204,0.6)' : 'none'
                                                                 }}>
                                                                 +
                                                             </div>
@@ -455,33 +442,24 @@ function Page() {
                                                                 onMouseEnter={() => setHoveredButton(`${row}-${col}`)}
                                                                 onMouseLeave={() => setHoveredButton(null)}
                                                                 onClick={() => {
-                                                                    if (!fromSlot) {
-                                                                        setFromSlot([row, col])
-                                                                    } else if (!toSlot) {
-                                                                        setToSlot([row, col])
-                                                                    } else {
-                                                                        setFromSlot(toSlot)
-                                                                        setToSlot([row, col])
-                                                                    }
+                                                                    if (!fromSlot) setFromSlot([row, col])
+                                                                    else if (!toSlot) setToSlot([row, col])
+                                                                    else { setFromSlot(toSlot); setToSlot([row, col]) }
                                                                 }}
                                                                 style={{
                                                                     ...styles.cardSlot,
-                                                                    textShadow: hoveredButton === `${row}-${col}`
-                                                                        ? '0 0 8px rgba(150, 223, 246, 0.6)'
-                                                                        : 'none',
-                                                                    boxShadow: hoveredButton === `${row}-${col}`
-                                                                        ? '0 0 8px rgba(0,82,204,0.6)'
-                                                                        : 'none'
-                                                                }}
-                                                            >
+                                                                    height: '100%',
+                                                                    textShadow: hoveredButton === `${row}-${col}` ? '0 0 8px rgba(150, 223, 246, 0.6)' : 'none',
+                                                                    boxShadow: hoveredButton === `${row}-${col}` ? '0 0 8px rgba(0,82,204,0.6)' : 'none'
+                                                                }}>
                                                                 +
                                                             </div>
                                                 }
-                                            </span>
+                                            </div>
                                     )
-                                })}
-                            </div>
-                        ))}
+                                })
+                            )}
+                        </div>
                     </div>
 
                     {/* dialog to add card / image */}
@@ -887,7 +865,6 @@ const styles = {
         background: 'transparent',
         color: 'var(--loading-text)',
         fontSize: '20px',
-        aspectRatio: '2.5/3.5',
         borderRadius: '3px',
         display: 'flex',
         alignItems: 'center',
