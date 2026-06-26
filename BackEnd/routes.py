@@ -490,6 +490,9 @@ def shift(id, number):
     if not page:
         return jsonify({'message': 'Page does not exist'}), 404 
     
+    if from_col == to_col and from_row == to_row:
+        return jsonify({'message': 'Choose another slot to swap the card / image'}), 404 
+    
     #check if position is within binder dimensions
     if from_col < 0 or from_row < 0 or from_col > binder.size - 1 or from_row > binder.size - 1:
         return jsonify({'message': 'Invalid starting card slot'}), 404 
