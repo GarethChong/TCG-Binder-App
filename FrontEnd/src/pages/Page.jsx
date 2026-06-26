@@ -397,12 +397,12 @@ function Page() {
                                                 {card // checks if cards exist or if the slot is empty
                                                     ? mode === 'add'
                                                         ? <div style={{ display: 'flex', flexDirection: 'row', }}>
-                                                            <div style={{ height: `calc(49vw / ${page.size} - 5px)`, overflow: 'hidden' }}>
+                                                            <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
                                                                 <img src={card.image_url} alt={card.name} onClick={() => setSelectedSlot(card)}
                                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                             </div>
                                                         </div>
-                                                        : <div style={{ height: `calc(49vw / ${page.size} - 5px)`, overflow: 'hidden' }}>
+                                                        : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
                                                             <img src={card.image_url} alt={card.name} onClick={() => {
                                                                 if (!fromSlot) {
                                                                     setFromSlot([row, col])
@@ -417,10 +417,10 @@ function Page() {
                                                         </div>
                                                     : image //if no card, check if there is image, otherwise is empty
                                                         ? mode === 'add'
-                                                            ? <div style={{ height: `calc(49vw / ${page.size} - 5px)`, overflow: 'hidden' }}>
+                                                            ? <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => setSelectedSlot(image)} />
                                                             </div>
-                                                            : <div style={{ height: `calc(49vw / ${page.size} - 5px)`, overflow: 'hidden'}}>
+                                                            : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden'}}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => {
                                                                     if (!fromSlot) {
                                                                         setFromSlot([row, col])
