@@ -379,7 +379,7 @@ function Page() {
                     }}
                     >
                         {Array.from({ length: page.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
-                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)`, height: `calc((49vw - ${page.size * 10}px) / ${page.size})`  }}>
+                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)`, height: `calc((49vw - ${page.size * 10}px) / ${page.size})` }}>
                                 {Array.from({ length: page.size }, (_, i) => i).map(col => { //create columns within each row
                                     const card = cards.find(c => c.slot_row === row && c.slot_col === col)
                                     const image = images.find(i => i.slot_row === row && i.slot_col === col)
@@ -388,6 +388,9 @@ function Page() {
                                             ? null
                                             : <span key={col} style={{
                                                 margin: '5px',
+                                                overflow: 'hidden',
+                                                display: 'block',
+                                                height: `calc((49vw - ${page.size * 10}px) / ${page.size})`,
                                                 gridColumn: image && image.width === 2 ? 'span 2' : undefined,
                                                 border: (fromSlot && fromSlot[0] === row && fromSlot[1] === col) ||
                                                     (toSlot && toSlot[0] === row && toSlot[1] === col)
@@ -420,7 +423,7 @@ function Page() {
                                                             ? <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => setSelectedSlot(image)} />
                                                             </div>
-                                                            : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden'}}>
+                                                            : <div style={{ height: `calc((49vw - ${page.size * 10}px) / ${page.size})`, overflow: 'hidden' }}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => {
                                                                     if (!fromSlot) {
                                                                         setFromSlot([row, col])
