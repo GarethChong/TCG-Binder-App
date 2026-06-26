@@ -388,6 +388,7 @@ function Page() {
                                             ? null
                                             : <span key={col} style={{
                                                 margin: '5px',
+                                                overFlow: 'hidden',
                                                 gridColumn: image && image.width === 2 ? 'span 2' : undefined,
                                                 border: (fromSlot && fromSlot[0] === row && fromSlot[1] === col) ||
                                                     (toSlot && toSlot[0] === row && toSlot[1] === col)
