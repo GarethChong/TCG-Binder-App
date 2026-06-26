@@ -388,7 +388,6 @@ function Page() {
                                             ? null
                                             : <span key={col} style={{
                                                 margin: '5px',
-                                                overflow: 'hidden',
                                                 gridColumn: image && image.width === 2 ? 'span 2' : undefined,
                                                 border: (fromSlot && fromSlot[0] === row && fromSlot[1] === col) ||
                                                     (toSlot && toSlot[0] === row && toSlot[1] === col)
@@ -398,12 +397,12 @@ function Page() {
                                                 {card // checks if cards exist or if the slot is empty
                                                     ? mode === 'add'
                                                         ? <div style={{ display: 'flex', flexDirection: 'row', }}>
-                                                            <div style={{ height: '100%' }}>
+                                                            <div style={{ aspectRatio: '2.5/3.5', overflow: 'hidden' }}>
                                                                 <img src={card.image_url} alt={card.name} onClick={() => setSelectedSlot(card)}
                                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                             </div>
                                                         </div>
-                                                        : <div style={{ height: '100%' }}>
+                                                        : <div style={{ aspectRatio: '2.5/3.5', overflow: 'hidden' }}>
                                                             <img src={card.image_url} alt={card.name} onClick={() => {
                                                                 if (!fromSlot) {
                                                                     setFromSlot([row, col])
@@ -418,10 +417,10 @@ function Page() {
                                                         </div>
                                                     : image //if no card, check if there is image, otherwise is empty
                                                         ? mode === 'add'
-                                                            ? <div style={{ height: '100%' }}>
+                                                            ? <div style={{ aspectRatio: '2.5/3.5', overflow: 'hidden' }}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => setSelectedSlot(image)} />
                                                             </div>
-                                                            : <div style={{ height: '100%' }}>
+                                                            : <div style={{ aspectRatio: '2.5/3.5', overflow: 'hidden'}}>
                                                                 <img src={image.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onClick={() => {
                                                                     if (!fromSlot) {
                                                                         setFromSlot([row, col])
