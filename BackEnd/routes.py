@@ -573,6 +573,16 @@ def shift(id, number):
                 return jsonify({'message': 'Binder slot out of position'}), 404
             
             if from_slot and not to_slot:
+                if isinstance(from_slot, DecorativeImage) and from_slot.width == 2:
+                    if to_col + 1 > binder.size - 1:
+                        return jsonify({'message': 'Not enough space for lateral image at this position'}), 404
+
+            if not from_slot and to_slot:
+                if isinstance(to_slot, DecorativeImage) and to_slot.width == 2:
+                    if from_col + 1 > binder.size - 1:
+                        return jsonify({'message': 'Not enough space for lateral image at this position'}), 404
+            
+            if from_slot and not to_slot:
                 from_slot_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=from_slot.slot_col+1).filter_by(slot_row=from_slot.slot_row).first()
     
                 to_card_second = Card.query.filter_by(page_id=page.id).filter_by(slot_col=to_col+1).filter_by(slot_row=to_row).first()
