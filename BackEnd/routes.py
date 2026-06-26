@@ -573,14 +573,26 @@ def shift(id, number):
                 return jsonify({'message': 'Binder slot out of position'}), 404
             
             if from_slot and not to_slot:
+                from_slot_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=from_slot.slot_col+1).filter_by(slot_row=from_slot.slot_row).first()
+    
                 to_card_second = Card.query.filter_by(page_id=page.id).filter_by(slot_col=to_col+1).filter_by(slot_row=to_row).first()
-                to_image_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=to_col+1).filter_by(slot_row=to_row).first()
+                to_image_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=to_col+1).filter_by(slot_row=to_row).filter(
+                    DecorativeImage.id != from_slot.id,
+                    DecorativeImage.id != from_slot_second.id if from_slot_second else True
+                ).first()
+                
                 if to_card_second or to_image_second:
                     return jsonify({'message': 'Image cannot be shifted (obstructed path)'}), 404
 
             if not from_slot and to_slot:
+                to_slot_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=to_slot.slot_col+1).filter_by(slot_row=to_slot.slot_row).first()
+    
                 from_card_second = Card.query.filter_by(page_id=page.id).filter_by(slot_col=from_col+1).filter_by(slot_row=from_row).first()
-                from_image_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=from_col+1).filter_by(slot_row=from_row).first()
+                from_image_second = DecorativeImage.query.filter_by(page_id=page.id).filter_by(slot_col=from_col+1).filter_by(slot_row=from_row).filter(
+                    DecorativeImage.id != to_slot.id,
+                    DecorativeImage.id != (to_slot_second.id if to_slot_second else -1)
+                ).first()
+                
                 if from_card_second or from_image_second:
                     return jsonify({'message': 'Image cannot be shifted (obstructed path)'}), 404
 
