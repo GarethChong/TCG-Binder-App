@@ -379,7 +379,7 @@ function Page() {
                     }}
                     >
                         {Array.from({ length: page.size }, (_, i) => i).map(row => ( //create outer rows, each wrapped in div
-                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)` }}>
+                            <div key={row} style={{ display: 'grid', gridTemplateColumns: `repeat(${page.size}, 1fr)`, height: `calc(49vw / ${page.size})`  }}>
                                 {Array.from({ length: page.size }, (_, i) => i).map(col => { //create columns within each row
                                     const card = cards.find(c => c.slot_row === row && c.slot_col === col)
                                     const image = images.find(i => i.slot_row === row && i.slot_col === col)
