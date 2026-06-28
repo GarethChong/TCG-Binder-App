@@ -75,7 +75,7 @@ function BinderList() {
         //stop click from bubbling up to the binder click handler
         e.stopPropagation()
         try {
-            const response = await fetch(`${API_URL}/${binder.id}`, {
+            const response = await fetch(`${API_URL}/binder/${binder.id}`, {
                 method: 'DELETE',
                 credentials: 'include',
             })
@@ -88,7 +88,7 @@ function BinderList() {
 
     const renameBinder = async (name, binder) => {
         try {
-            const response = await fetch(`${API_URL}/${binder.id}`, {
+            const response = await fetch(`${API_URL}/binder/${binder.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
