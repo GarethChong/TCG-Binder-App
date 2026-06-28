@@ -194,6 +194,7 @@ DecorativeImage
 - **No holo rendering** — the API image URLs return standard card images only; foil and holo visual effects are not supported
 - **AI text-only responses** — Groq's LLaMA model cannot return image URLs or render card images in suggestions. This was a budget constraint; a more capable model would enable richer visual recommendations
 - **No AI memory** — the AI adviser has no memory between sessions by design, both due to free tier storage constraints and to encourage user creativity rather than AI dependency
+- **Desktop only** — the app is optimised for desktop browsers and is not responsive for mobile screens. A mobile-first redesign using responsive CSS or a React Native port would be a future consideration.
 
 ---
 
