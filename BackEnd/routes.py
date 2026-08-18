@@ -3,7 +3,7 @@ import requests
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, bcrypt, User, Binder, Page, Card, DecorativeImage
-from groq import Groq
+from openai import OpenAI
 
 POKEMON_API_KEY = os.getenv('POKEMON_API_KEY')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
@@ -783,6 +783,12 @@ def ai_suggestion(id, number):
         {user_prompt}
         ========================================="""
 
-    client = Groq(api_key=GROQ_API_KEY)
-    response = client.chat.completions.create(model='llama-3.3-70b-versatile', messages=[{'role': 'user', 'content': prompt}])
-    return jsonify({'suggestions': response.choices[0].message.content})
+    client = OpenAI(
+        api_key=GROQ_API_KEY,
+        base_url="https://api.groq.com/openai/v1",
+        )
+    response = client.responses.create(
+        input=prompt,
+        model='openai/gpt-oss-20b'
+    )
+    return jsonify({'suggestions': response.output_text})
